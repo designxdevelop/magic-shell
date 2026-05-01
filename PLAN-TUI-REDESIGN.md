@@ -38,9 +38,9 @@ Current layout:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ magic-shell                       [Big Pickle]    │
+│ magic-shell                    [Kimi K2.6 Free]   │
 ├─────────────────────────────────────────────────────┤
-│ Provider: opencode-zen  Model: Big Pickle  ● Safe   │
+│ Provider: opencode-zen  Model: Kimi K2.6 Free ● Safe│
 ├─────────────────────────────────────────────────────┤
 │                                                     │
 │ ┌─ Chat History (scrollable) ─────────────────────┐ │

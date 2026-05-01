@@ -181,18 +181,18 @@ OpenCode Zen provides curated models optimized for coding tasks, including **fre
 
 **Free Models:**
 
-- `big-pickle` - Stealth model (default)
-- `glm-4.7` - GLM 4.7
-- `minimax-m2.1` - MiniMax's capable model
-- `kimi-k2.5` - Moonshot's latest model
+- `kimi-k2.6-free` - Moonshot's latest model (default)
+- `deepseek-v4-flash-free` - DeepSeek's latest fast model
+- `minimax-m2.5-free` - Free MiniMax model
 
 **Premium Models:**
 
 - Claude Sonnet 4.5, Claude Opus 4.5
 - Claude Haiku 4.5
-- Kimi K2, Kimi K2 Thinking
-- Qwen3 Coder 480B
-- GLM 4.6
+- Kimi K2.6, Kimi K2 Thinking
+- DeepSeek V4 Pro, DeepSeek V4 Flash
+- GLM 5.1
+- MiniMax M2.7
 - Gemini 3 Pro, Gemini 3 Flash
 - GPT 5.2, GPT 5.2 Codex, GPT 5.1 series
 - And more...
@@ -206,15 +206,14 @@ Access to a wide variety of models from different providers.
 **Free Models:**
 
 - MiMo V2 Flash
-- DeepSeek V3
+- MiniMax M2.5 Free
 
 **Premium Models:**
 
-- Claude Sonnet 4.5, Claude Opus 4.5
-- Claude Haiku 4.5
-- DeepSeek R1
-- GLM 4.7
-- Gemini 2.5 Pro, Gemini 2.5 Flash (stable until June 2026)
+- Kimi K2.6, Kimi K2 Thinking
+- DeepSeek V4 Pro, DeepSeek V4 Flash
+- GLM 5.1, GLM 5 Turbo
+- MiniMax M2.7
 - And many more...
 
 Get your API key at: https://openrouter.ai/keys
@@ -296,7 +295,7 @@ Configuration is stored in `~/.magic-shell/config.json`.
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "big-pickle",
+  "defaultModel": "kimi-k2.6-free",
   "safetyLevel": "moderate",
   "dryRunByDefault": false,
   "repoContext": false,

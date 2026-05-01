@@ -16,7 +16,7 @@ type ZenApiType = "openai-responses" | "anthropic" | "openai-compatible" | "goog
 function getZenApiType(modelId: string): ZenApiType {
   // Zen has a small handful of models that don't follow the ID prefix convention.
   // Keep these overrides in sync with https://opencode.ai/docs/zen/
-  if (modelId === "minimax-m2.1-free") {
+  if (modelId === "minimax-m2.5-free") {
     return "anthropic";
   }
 
@@ -32,7 +32,7 @@ function getZenApiType(modelId: string): ZenApiType {
   if (modelId.startsWith("gemini-")) {
     return "google";
   }
-  // OpenAI-compatible (Kimi, Qwen, GLM, Grok, Big Pickle, etc.)
+  // OpenAI-compatible (Kimi, DeepSeek, GLM, Grok, etc.)
   return "openai-compatible";
 }
 

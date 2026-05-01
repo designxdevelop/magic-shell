@@ -162,7 +162,7 @@ export function getShellInfo(): ShellInfo {
 ```typescript
 const DEFAULT_CONFIG: Config = {
   provider: "opencode-zen",
-  defaultModel: "big-pickle",
+  defaultModel: "kimi-k2.6-free",
   safetyLevel: "moderate",
   // ...
 }

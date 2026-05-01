@@ -30,7 +30,7 @@ import { getTheme, setTheme, themes, themeNames, loadTheme } from "./lib/theme";
 
 // Global state
 let renderer: CliRenderer;
-let currentModel: Model | CustomModel = OPENCODE_ZEN_MODELS[0]; // Default to Big Pickle
+let currentModel: Model | CustomModel = OPENCODE_ZEN_MODELS[0]; // Default to current free Zen model
 let config: Config;
 let history: CommandHistory[] = [];
 let currentCwd = getCwd();
@@ -226,7 +226,7 @@ Enter your API key below:`,
     const freeNote = new TextRenderable(renderer, {
       id: "free-note",
       content: t`
-${fg("#22c55e")("Tip:")} OpenCode Zen has free models like Big Pickle and GLM 4.7!`,
+${fg("#22c55e")("Tip:")} OpenCode Zen has free models like Kimi K2.6 and DeepSeek V4 Flash!`,
       marginTop: 1,
     });
     container.add(freeNote);
@@ -246,7 +246,7 @@ ${fg("#64748b")("Press Enter to save | Ctrl+C to exit")}`,
 
       // Set default model based on provider
       if (provider === "opencode-zen") {
-        currentModel = OPENCODE_ZEN_MODELS.find((m) => m.id === "big-pickle") || OPENCODE_ZEN_MODELS[0];
+        currentModel = OPENCODE_ZEN_MODELS.find((m) => m.id === "kimi-k2.6-free") || OPENCODE_ZEN_MODELS[0];
       } else {
         currentModel = OPENROUTER_MODELS[0];
       }

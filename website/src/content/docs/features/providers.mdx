@@ -15,10 +15,9 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 
 | Model | Description |
 |-------|-------------|
-| `big-pickle` | Stealth model - experimental (default) |
-| `glm-4.7` | GLM 4.7 - good general purpose |
-| `minimax-m2.1` | MiniMax's capable model |
-| `kimi-k2.5` | Moonshot's latest model |
+| `kimi-k2.6-free` | Moonshot's latest model (default) |
+| `deepseek-v4-flash-free` | DeepSeek's latest fast model |
+| `minimax-m2.5-free` | Free MiniMax model |
 
 ### Premium Models
 
@@ -27,17 +26,19 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 | `claude-sonnet-4-5` | Anthropic's hybrid reasoning model |
 | `claude-opus-4-5` | Anthropic's most capable model |
 | `claude-haiku-4-5` | Anthropic's latest fast model |
-| `kimi-k2` | Moonshot's Kimi K2 |
+| `kimi-k2.6` | Moonshot's latest Kimi model |
 | `kimi-k2-thinking` | Kimi K2 with extended reasoning |
-| `qwen3-coder` | Alibaba's massive coding model |
-| `glm-4.6` | Zhipu AI's capable model |
+| `deepseek-v4-pro` | DeepSeek's latest high-context model |
+| `deepseek-v4-flash` | DeepSeek's latest fast model |
+| `glm-5.1` | Z.ai's latest GLM model |
+| `minimax-m2.7` | MiniMax's latest model |
 | `gemini-3-pro` | Google's high-end Gemini model |
 | `gemini-3-flash` | Google's fast Gemini model |
 | `gpt-5.2` | OpenAI's flagship GPT model |
 | `gpt-5.2-codex` | OpenAI's coding-focused GPT model |
 
 <Aside type="tip">
-  For most shell commands, `glm-4.7` works excellently. The default is `big-pickle` for quick experiments.
+  For most shell commands, `kimi-k2.6-free` is a good default for quick experiments.
 </Aside>
 
 ### Get an API Key
@@ -56,19 +57,18 @@ OpenRouter provides access to models from many providers through a single API.
 | Model | Description |
 |-------|-------------|
 | `mimo-v2-flash` | MiMo V2 Flash |
-| `deepseek-v3` | DeepSeek V3 |
+| `minimax/minimax-m2.5:free` | Free MiniMax model |
 
 ### Premium Models
 
 | Model | Description |
 |-------|-------------|
-| `claude-sonnet-4.5` | Anthropic Claude Sonnet 4.5 |
-| `claude-opus-4.5` | Anthropic Claude Opus 4.5 |
-| `claude-haiku-4.5` | Anthropic's fast and efficient model |
-| `deepseek-r1` | DeepSeek R1 reasoning model |
-| `glm-4.7` | Zhipu AI's capable model |
-| `gemini-2.5-pro` | Google's Gemini 2.5 Pro (stable until June 2026) |
-| `gemini-2.5-flash` | Google's fast Gemini 2.5 (stable until June 2026) |
+| `moonshotai/kimi-k2.6` | Moonshot's latest Kimi model |
+| `deepseek/deepseek-v4-pro` | DeepSeek's latest high-context model |
+| `deepseek/deepseek-v4-flash` | DeepSeek's latest fast model |
+| `z-ai/glm-5.1` | Z.ai's latest GLM model |
+| `z-ai/glm-5-turbo` | Z.ai's latest fast GLM model |
+| `minimax/minimax-m2.7` | MiniMax's latest model |
 
 ### Get an API Key
 
@@ -102,7 +102,7 @@ Press `Ctrl+X S` to open the provider switcher.
 msh --models
 
 # Set default model
-msh --model big-pickle
+msh --model kimi-k2.6-free
 ```
 
 ### Via TUI
@@ -113,9 +113,9 @@ Press `Ctrl+X M` to open the model picker.
 
 | Use Case | Recommended Model |
 |----------|------------------|
-| Quick commands | `big-pickle` (free) |
+| Quick commands | `kimi-k2.6-free` |
 | Complex git operations | `claude-sonnet-4.5` |
-| System administration | `glm-4.7` or `minimax-m2.1` |
+| System administration | `deepseek-v4-flash` or `minimax-m2.7` |
 | Multi-step tasks | `claude-opus-4.5` or `kimi-k2-thinking` |
 | Learning/experimenting | Any free model |
 

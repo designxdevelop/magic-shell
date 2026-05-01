@@ -16,7 +16,7 @@ const DEFAULT_CONFIG: Config = {
   provider: "opencode-zen",
   openrouterApiKey: "", // Only used as fallback if keychain unavailable
   opencodeZenApiKey: "", // Only used as fallback if keychain unavailable
-  defaultModel: "big-pickle", // Reliable free model
+  defaultModel: "kimi-k2.6-free", // Current free OpenCode Zen model
   safetyLevel: "moderate",
   dryRunByDefault: false,
   blockedCommands: [

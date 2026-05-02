@@ -23,6 +23,9 @@ Magic Shell is an open-source CLI tool that translates plain English (or any nat
 
 ### Via Package Manager (Recommended)
 
+**Prerequisite:** Magic Shell runs on the [Bun](https://bun.sh) runtime. Install Bun first,
+even if you install the package with npm, pnpm, or yarn.
+
 ```bash
 # bun (recommended)
 bun add -g @austinthesing/magic-shell
@@ -39,7 +42,7 @@ yarn global add @austinthesing/magic-shell
 
 ### From Source
 
-**Prerequisites:** [Bun](https://bun.sh) runtime (v1.0 or higher)
+**Prerequisite:** [Bun](https://bun.sh) runtime (v1.3.9 or higher)
 
 ```bash
 # Clone the repository

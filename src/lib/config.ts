@@ -24,7 +24,8 @@ const DEFAULT_CONFIG: Config = {
   workersAiApiKey: "", // Only used as fallback if keychain unavailable
   cloudflareAccountId: "",
   cloudflareAiGatewayId: "default",
-  defaultModel: "kimi-k2.6-free", // Current free OpenCode Zen model
+  defaultModel: "minimax-m2.5-free", // Current free OpenCode Zen model
+  thinkingLevel: "low",
   safetyLevel: "moderate",
   dryRunByDefault: false,
   blockedCommands: [

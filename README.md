@@ -105,6 +105,7 @@ mshell
 | `msh --list-custom`       | List custom models                          |
 | `msh --remove-model <id>` | Remove custom model                         |
 | `msh --provider <name>`   | Set provider (opencode-zen or openrouter)   |
+| `msh --thinking <level>`  | Set thinking level (off, low, medium, high) |
 | `msh --themes`            | List available themes                       |
 | `msh --theme <name>`      | Set color theme                             |
 | `msh --repo-context`      | Enable project context detection            |
@@ -184,8 +185,13 @@ OpenCode Zen provides curated models optimized for coding tasks, including **fre
 
 **Free Models:**
 
-- `kimi-k2.6-free` - Moonshot's latest model (default)
-- `deepseek-v4-flash-free` - DeepSeek's latest fast model
+- `minimax-m2.5-free` - MiniMax's free model (default)
+- `ling-2.6-flash-free` - Ling's free flash model
+- `hy3-preview-free` - Hy3 preview model
+- `nemotron-3-super-free` - NVIDIA Nemotron free trial model
+- `trinity-large-preview-free` - Trinity large preview model
+- `big-pickle` - OpenCode stealth model
+- `gpt-5-nano` - OpenAI's free lightweight GPT model
 
 **Premium Models:**
 
@@ -297,7 +303,8 @@ Configuration is stored in `~/.magic-shell/config.json`.
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "kimi-k2.6-free",
+  "defaultModel": "minimax-m2.5-free",
+  "thinkingLevel": "low",
   "safetyLevel": "moderate",
   "dryRunByDefault": false,
   "repoContext": false,

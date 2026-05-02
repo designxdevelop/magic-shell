@@ -3,8 +3,9 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText, type LanguageModel } from "ai";
+import type { ProviderOptions } from "@ai-sdk/provider-utils";
 
-import type { CommandHistory, Model, Config, CustomModel, Provider } from "./types";
+import type { CommandHistory, Model, Config, CustomModel, Provider, ThinkingLevel } from "./types";
 import { isCustomModel } from "./types";
 import { loadConfig } from "./config";
 import { detectShell, getShellSyntaxHints, getPlatformPaths, type ShellInfo } from "./shell";
@@ -136,7 +137,120 @@ function cleanCommand(command: string): string {
 }
 
 // OpenRouter API
-async function callOpenRouter(apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+function getThinkingLevel(config?: Config): ThinkingLevel {
+  return config?.thinkingLevel || "low";
+}
+
+function supportsThinkingControl(modelId: string): boolean {
+  return (
+    modelId.includes("thinking") ||
+    modelId.includes("gpt-5") ||
+    modelId.includes("claude-") ||
+    modelId.includes("gemini-")
+  );
+}
+
+function buildOpenRouterThinkingOptions(modelId: string, thinkingLevel: ThinkingLevel): Record<string, unknown> {
+  if (thinkingLevel === "off" || !supportsThinkingControl(modelId)) {
+    return {};
+  }
+
+  return {
+    reasoning: {
+      effort: thinkingLevel,
+    },
+  };
+}
+
+function buildOpenAICompatibleThinkingOptions(modelId: string, thinkingLevel: ThinkingLevel): Record<string, unknown> {
+  if (thinkingLevel === "off" || !supportsThinkingControl(modelId)) {
+    return {};
+  }
+
+  return {
+    reasoning_effort: thinkingLevel,
+  };
+}
+
+function buildAiSdkProviderOptions(modelId: string, thinkingLevel: ThinkingLevel, providerOptionsName?: string): ProviderOptions | undefined {
+  if (thinkingLevel === "off" || !supportsThinkingControl(modelId)) {
+    return undefined;
+  }
+
+  if (modelId.startsWith("gpt-")) {
+    const compatibleOptions =
+      providerOptionsName && providerOptionsName !== "openai"
+        ? {
+            [providerOptionsName]: {
+              reasoningEffort: thinkingLevel,
+            },
+          }
+        : {};
+
+    return {
+      openai: {
+        reasoningEffort: thinkingLevel,
+      },
+      openaiCompatible: {
+        reasoningEffort: thinkingLevel,
+      },
+      ...compatibleOptions,
+    };
+  }
+
+  if (modelId.startsWith("gemini-")) {
+    return {
+      google: {
+        thinkingConfig: {
+          thinkingLevel,
+        },
+      },
+    };
+  }
+
+  if (modelId.startsWith("claude-")) {
+    const budgetByLevel: Record<Exclude<ThinkingLevel, "off">, number> = {
+      low: 1024,
+      medium: 4096,
+      high: 8192,
+    };
+    return {
+      anthropic: {
+        thinking: {
+          type: "enabled",
+          budgetTokens: budgetByLevel[thinkingLevel],
+        },
+      },
+    };
+  }
+
+  if (modelId.includes("thinking")) {
+    return {
+      openaiCompatible: {
+        reasoningEffort: thinkingLevel,
+      },
+      ...(providerOptionsName
+        ? {
+            [providerOptionsName]: {
+              reasoningEffort: thinkingLevel,
+            },
+          }
+        : {}),
+    };
+  }
+
+  return undefined;
+}
+
+function shouldOmitTemperature(modelId: string, thinkingLevel: ThinkingLevel): boolean {
+  return thinkingLevel !== "off" && (modelId.startsWith("claude-") || modelId.includes("gpt-5"));
+}
+
+// OpenRouter API
+async function callOpenRouter(apiKey: string, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
+  const thinkingOptions = buildOpenRouterThinkingOptions(modelId, thinkingLevel);
+  const temperatureOptions = shouldOmitTemperature(modelId, thinkingLevel) ? {} : { temperature: 0.1 };
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -152,7 +266,8 @@ async function callOpenRouter(apiKey: string, modelId: string, systemPrompt: str
         { role: "user", content: userInput },
       ],
       max_tokens: 500,
-      temperature: 0.1,
+      ...temperatureOptions,
+      ...thinkingOptions,
     }),
   });
 
@@ -182,9 +297,13 @@ async function callOpenAICompatibleFetch(
   modelId: string,
   systemPrompt: string,
   userInput: string,
+  thinkingLevel: ThinkingLevel,
   headers: Record<string, string> = {},
   includeAuthorization = true,
 ): Promise<string> {
+  const thinkingOptions = buildOpenAICompatibleThinkingOptions(modelId, thinkingLevel);
+  const temperatureOptions = shouldOmitTemperature(modelId, thinkingLevel) ? {} : { temperature: 0.1 };
+
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...headers,
@@ -203,8 +322,9 @@ async function callOpenAICompatibleFetch(
         { role: "user", content: userInput },
       ],
       max_tokens: 500,
-      temperature: 0.1,
       stream: false,
+      ...temperatureOptions,
+      ...thinkingOptions,
     }),
   });
 
@@ -242,7 +362,7 @@ function getCloudflareGatewayId(config: Config): string {
   return config.cloudflareAiGatewayId || process.env.CLOUDFLARE_AI_GATEWAY_ID || process.env.CF_AIG_GATEWAY_ID || "default";
 }
 
-async function callGatewayProvider(provider: Provider, apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+async function callGatewayProvider(provider: Provider, apiKey: string, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
   const config = loadConfig();
 
   switch (provider) {
@@ -253,6 +373,7 @@ async function callGatewayProvider(provider: Provider, apiKey: string, modelId: 
         modelId,
         systemPrompt,
         userInput,
+        thinkingLevel,
       );
     case "cloudflare-ai-gateway": {
       const accountId = getCloudflareAccountId(config);
@@ -266,6 +387,7 @@ async function callGatewayProvider(provider: Provider, apiKey: string, modelId: 
         modelId,
         systemPrompt,
         userInput,
+        thinkingLevel,
         { "cf-aig-authorization": `Bearer ${apiKey}` },
         false,
       );
@@ -281,6 +403,7 @@ async function callGatewayProvider(provider: Provider, apiKey: string, modelId: 
         modelId,
         systemPrompt,
         userInput,
+        thinkingLevel,
       );
     }
     default:
@@ -291,20 +414,24 @@ async function callGatewayProvider(provider: Provider, apiKey: string, modelId: 
 // Debug flag - set to true to see API responses
 const DEBUG_API = process.env.DEBUG_API === "1";
 
-async function generateZenText(model: LanguageModel, systemPrompt: string, userInput: string): Promise<string> {
+async function generateZenText(model: LanguageModel, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel, providerOptionsName?: string): Promise<string> {
+  const providerOptions = buildAiSdkProviderOptions(modelId, thinkingLevel, providerOptionsName);
+  const temperatureOptions = shouldOmitTemperature(modelId, thinkingLevel) ? {} : { temperature: 0.1 };
+
   const { text } = await generateText({
     model,
     system: systemPrompt,
     prompt: userInput,
     maxOutputTokens: 500,
-    temperature: 0.1,
+    ...temperatureOptions,
+    ...(providerOptions ? { providerOptions } : {}),
   });
 
   return text.trim();
 }
 
 // OpenCode Zen - OpenAI Responses API
-async function callZenOpenAIResponses(apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+async function callZenOpenAIResponses(apiKey: string, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
   if (DEBUG_API) {
     console.error(`[DEBUG] Calling OpenAI Responses API`);
     console.error(`[DEBUG] Model: ${modelId}`);
@@ -316,7 +443,7 @@ async function callZenOpenAIResponses(apiKey: string, modelId: string, systemPro
   });
 
   try {
-    return await generateZenText(openai(modelId), systemPrompt, userInput);
+    return await generateZenText(openai(modelId), modelId, systemPrompt, userInput, thinkingLevel);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (DEBUG_API) {
@@ -327,7 +454,7 @@ async function callZenOpenAIResponses(apiKey: string, modelId: string, systemPro
 }
 
 // OpenCode Zen - Anthropic Messages API
-async function callZenAnthropic(apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+async function callZenAnthropic(apiKey: string, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
   if (DEBUG_API) {
     console.error(`[DEBUG] Calling Anthropic Messages API`);
     console.error(`[DEBUG] Model: ${modelId}`);
@@ -339,7 +466,7 @@ async function callZenAnthropic(apiKey: string, modelId: string, systemPrompt: s
   });
 
   try {
-    return await generateZenText(anthropic(modelId), systemPrompt, userInput);
+    return await generateZenText(anthropic(modelId), modelId, systemPrompt, userInput, thinkingLevel);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (DEBUG_API) {
@@ -350,7 +477,7 @@ async function callZenAnthropic(apiKey: string, modelId: string, systemPrompt: s
 }
 
 // OpenCode Zen - OpenAI-compatible Chat Completions
-async function callZenOpenAICompatible(apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+async function callZenOpenAICompatible(apiKey: string, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
   if (DEBUG_API) {
     console.error(`[DEBUG] Calling OpenAI-compatible Chat Completions API`);
     console.error(`[DEBUG] Model: ${modelId}`);
@@ -362,7 +489,7 @@ async function callZenOpenAICompatible(apiKey: string, modelId: string, systemPr
   });
 
   try {
-    return await generateZenText(openaiCompatible(modelId), systemPrompt, userInput);
+    return await generateZenText(openaiCompatible(modelId), modelId, systemPrompt, userInput, thinkingLevel, "opencodeZen");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (DEBUG_API) {
@@ -373,7 +500,7 @@ async function callZenOpenAICompatible(apiKey: string, modelId: string, systemPr
 }
 
 // Custom model (LM Studio, Ollama, etc.)
-async function callCustomModel(model: CustomModel, systemPrompt: string, userInput: string): Promise<string> {
+async function callCustomModel(model: CustomModel, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
   if (DEBUG_API) {
     console.error(`[DEBUG] Calling Custom Model`);
     console.error(`[DEBUG] Model: ${model.modelId}`);
@@ -386,7 +513,7 @@ async function callCustomModel(model: CustomModel, systemPrompt: string, userInp
   });
 
   try {
-    return await generateZenText(openaiCompatible(model.modelId), systemPrompt, userInput);
+    return await generateZenText(openaiCompatible(model.modelId), model.modelId, systemPrompt, userInput, thinkingLevel, "custom");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (DEBUG_API) {
@@ -398,7 +525,7 @@ async function callCustomModel(model: CustomModel, systemPrompt: string, userInp
 
 // OpenCode Zen - Google (Gemini)
 // Gemini uses the generateContent endpoint format
-async function callZenGoogle(apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+async function callZenGoogle(apiKey: string, modelId: string, systemPrompt: string, userInput: string, thinkingLevel: ThinkingLevel): Promise<string> {
   if (DEBUG_API) {
     console.error(`[DEBUG] Calling Google Gemini API`);
     console.error(`[DEBUG] Model: ${modelId}`);
@@ -409,7 +536,7 @@ async function callZenGoogle(apiKey: string, modelId: string, systemPrompt: stri
   });
 
   try {
-    return await generateZenText(google(modelId), systemPrompt, userInput);
+    return await generateZenText(google(modelId), modelId, systemPrompt, userInput, thinkingLevel);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (DEBUG_API) {
@@ -429,33 +556,34 @@ export function getShellInfo(): ShellInfo {
   return cachedShellInfo;
 }
 
-export async function translateToCommand(apiKey: string, model: Model | CustomModel, userInput: string, cwd: string, history: CommandHistory[] = [], repoContextEnabled?: boolean): Promise<string> {
+export async function translateToCommand(apiKey: string, model: Model | CustomModel, userInput: string, cwd: string, history: CommandHistory[] = [], repoContextEnabled?: boolean, config?: Config): Promise<string> {
   const shellInfo = getShellInfo();
   const systemPrompt = buildSystemPrompt(cwd, history, shellInfo, repoContextEnabled);
+  const thinkingLevel = getThinkingLevel(config);
   let rawCommand: string;
 
   // Handle custom models (LM Studio, Ollama, etc.)
   if (isCustomModel(model)) {
-    rawCommand = await callCustomModel(model, systemPrompt, userInput);
+    rawCommand = await callCustomModel(model, systemPrompt, userInput, "off");
   } else if (model.provider === "openrouter") {
-    rawCommand = await callOpenRouter(apiKey, model.id, systemPrompt, userInput);
+    rawCommand = await callOpenRouter(apiKey, model.id, systemPrompt, userInput, thinkingLevel);
   } else if (model.provider === "vercel-ai-gateway" || model.provider === "cloudflare-ai-gateway" || model.provider === "workers-ai") {
-    rawCommand = await callGatewayProvider(model.provider, apiKey, model.id, systemPrompt, userInput);
+    rawCommand = await callGatewayProvider(model.provider, apiKey, model.id, systemPrompt, userInput, thinkingLevel);
   } else {
     // OpenCode Zen - determine API type
     const apiType = getZenApiType(model.id);
     switch (apiType) {
       case "openai-responses":
-        rawCommand = await callZenOpenAIResponses(apiKey, model.id, systemPrompt, userInput);
+        rawCommand = await callZenOpenAIResponses(apiKey, model.id, systemPrompt, userInput, thinkingLevel);
         break;
       case "anthropic":
-        rawCommand = await callZenAnthropic(apiKey, model.id, systemPrompt, userInput);
+        rawCommand = await callZenAnthropic(apiKey, model.id, systemPrompt, userInput, thinkingLevel);
         break;
       case "google":
-        rawCommand = await callZenGoogle(apiKey, model.id, systemPrompt, userInput);
+        rawCommand = await callZenGoogle(apiKey, model.id, systemPrompt, userInput, thinkingLevel);
         break;
       case "openai-compatible":
-        rawCommand = await callZenOpenAICompatible(apiKey, model.id, systemPrompt, userInput);
+        rawCommand = await callZenOpenAICompatible(apiKey, model.id, systemPrompt, userInput, thinkingLevel);
         break;
     }
   }

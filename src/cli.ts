@@ -32,6 +32,7 @@ import {
   type CommandHistory,
   type Config,
   type Provider,
+  type ThinkingLevel,
   type ChatMessage,
   type SafetyAnalysis,
   isCustomModel,
@@ -443,9 +444,10 @@ function getStatusBarContent(): StyledText {
   const safeModeIndicator = dryRunMode ? fg(theme.colors.warning)("[DRY RUN]") : "";
   const safetyLevelColor = config.safetyLevel === "strict" ? theme.colors.warning : config.safetyLevel === "relaxed" ? theme.colors.error : theme.colors.success;
   const safetyIndicator = fg(safetyLevelColor)(`[${config.safetyLevel}]`);
+  const thinkingIndicator = config.thinkingLevel !== "off" ? fg(theme.colors.secondary)(`[Think:${config.thinkingLevel}]`) : "";
   const repoContextIndicator = config.repoContext ? fg(theme.colors.info)("[Repo]") : "";
 
-  return t`${fg(theme.colors.textMuted)("Provider:")} ${fg(theme.colors.text)(providerName)}  ${fg(theme.colors.textMuted)("Model:")} ${fg(theme.colors.text)(currentModel.name)}  ${safetyIndicator}${safeModeIndicator ? " " : ""}${safeModeIndicator}${repoContextIndicator ? " " : ""}${repoContextIndicator}`;
+  return t`${fg(theme.colors.textMuted)("Provider:")} ${fg(theme.colors.text)(providerName)}  ${fg(theme.colors.textMuted)("Model:")} ${fg(theme.colors.text)(currentModel.name)}  ${safetyIndicator}${thinkingIndicator ? " " : ""}${thinkingIndicator}${safeModeIndicator ? " " : ""}${safeModeIndicator}${repoContextIndicator ? " " : ""}${repoContextIndicator}`;
 }
 
 function getHelpBarContent(): StyledText {
@@ -453,7 +455,7 @@ function getHelpBarContent(): StyledText {
   if (awaitingConfirmation) {
     return t`${fg(theme.colors.warning)(">>> Cmd+Enter or Enter to execute <<<")} ${fg(theme.colors.textMuted)("|")} ${fg(theme.colors.error)("Esc")}${fg(theme.colors.textMuted)(" Cancel")} ${fg(theme.colors.primary)("e")}${fg(theme.colors.textMuted)(" Edit")} ${fg(theme.colors.primary)("c")}${fg(theme.colors.textMuted)(" Copy")}`;
   }
-  return t`${fg(theme.colors.primary)("Ctrl+X P")}${fg(theme.colors.textMuted)(" Commands")}  ${fg(theme.colors.primary)("Ctrl+Y")}${fg(theme.colors.textMuted)(" Safety")}  ${fg(theme.colors.primary)("Ctrl+Z")}${fg(theme.colors.textMuted)(" Exit")}`;
+  return t`${fg(theme.colors.primary)("Ctrl+X P")}${fg(theme.colors.textMuted)(" Commands")}  ${fg(theme.colors.primary)("Ctrl+Y")}${fg(theme.colors.textMuted)(" Safety")}  ${fg(theme.colors.primary)("Ctrl+K")}${fg(theme.colors.textMuted)(" Think")}  ${fg(theme.colors.primary)("Ctrl+Z")}${fg(theme.colors.textMuted)(" Exit")}`;
 }
 
 function getInputHintContent(): StyledText {
@@ -855,7 +857,7 @@ async function translateAndProcess(input: string) {
   const loadingMsg = addSystemMessage("Translating...");
 
   try {
-    const command = await translateToCommand(apiKey, currentModel, input, currentCwd, history, config.repoContext);
+    const command = await translateToCommand(apiKey, currentModel, input, currentCwd, history, config.repoContext, config);
 
     // Remove the loading message
     chatScrollBox.remove(`msg-${loadingMsg.id}`);
@@ -1028,6 +1030,10 @@ async function handleSpecialCommand(input: string) {
       statusBarText.content = getStatusBarContent();
       addSystemMessage(`Dry-run mode: ${dryRunMode ? "ON" : "OFF"}`);
       break;
+    case "thinking":
+    case "think":
+      cycleThinkingLevel();
+      break;
     case "config":
       await showConfig();
       break;
@@ -1059,6 +1065,7 @@ function clearChat() {
 function showHelp() {
   const helpText = `Direct Shortcuts:
 Ctrl+Y  Cycle safety level (strict/moderate/relaxed)
+Ctrl+K  Cycle thinking level (low/medium/high/off)
 Ctrl+Z  Exit magic-shell
 Ctrl+C  Cancel / Close popup
 
@@ -1067,18 +1074,25 @@ P  Command palette    M  Change model
 S  Switch provider    D  Toggle dry-run
 T  Change theme       R  Toggle repo context
 H  Show history       L  Clear chat
-C  Show config        ?  This help
+C  Show config        K  Thinking level
+?  This help
 
 Commands (type ! or / followed by):
 help      Show this help      model     Change model
 provider  Switch provider     dry       Toggle dry-run
-config    Show configuration  history   Show history
-clear     Clear chat
+thinking  Cycle thinking      config    Show configuration
+history   Show history        clear     Clear chat
 
 Safety Levels:
 - strict:   Confirm ALL potentially dangerous commands
 - moderate: Confirm high/critical severity commands (default)
 - relaxed:  Only confirm critical commands
+
+Thinking Levels:
+- low:     Default low-cost reasoning for supported models
+- medium:  More reasoning for harder translations
+- high:    Maximum reasoning for supported models
+- off:     Do not request provider thinking controls
 
 Tips:
 - Type naturally: "list all files" -> ls -la
@@ -1109,6 +1123,7 @@ Theme:        ${theme.name}
 Shell:        ${shellInfo.shell} (${shellInfo.shellPath})
 Platform:     ${shellInfo.platform}${shellInfo.isWSL ? " (WSL)" : ""}
 Safety:       ${config.safetyLevel}
+Thinking:     ${config.thinkingLevel}
 Dry-run:      ${dryRunMode ? "ON" : "OFF"}
 Repo context: ${config.repoContext ? "ON" : "OFF"}
 API Key:      ${apiKeyStatus}
@@ -1417,6 +1432,16 @@ interface PaletteCommand {
   action: () => void | Promise<void>;
 }
 
+function cycleThinkingLevel(): void {
+  const levels: ThinkingLevel[] = ["low", "medium", "high", "off"];
+  const currentIndex = levels.indexOf(config.thinkingLevel);
+  const nextIndex = (currentIndex + 1) % levels.length;
+  config.thinkingLevel = levels[nextIndex];
+  saveConfig(config);
+  statusBarText.content = getStatusBarContent();
+  addSystemMessage(`Thinking level: ${config.thinkingLevel}`);
+}
+
 function getCommandPaletteOptions(): PaletteCommand[] {
   return [
     {
@@ -1471,6 +1496,13 @@ function getCommandPaletteOptions(): PaletteCommand[] {
         };
         addSystemMessage(`Safety level: ${config.safetyLevel} (${descriptions[config.safetyLevel]})`);
       },
+    },
+    {
+      name: "Cycle Thinking Level",
+      description: `Current: ${config.thinkingLevel}`,
+      key: "k",
+      chord: "k",
+      action: () => cycleThinkingLevel(),
     },
     {
       name: "Toggle Project Context",
@@ -1621,6 +1653,11 @@ function handleKeypress(key: KeyEvent) {
       relaxed: "only confirms critical commands",
     };
     addSystemMessage(`Safety level: ${config.safetyLevel} (${descriptions[config.safetyLevel]})`);
+    return;
+  }
+
+  if (key.ctrl && key.name === "k") {
+    cycleThinkingLevel();
     return;
   }
 

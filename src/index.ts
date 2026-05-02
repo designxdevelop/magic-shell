@@ -73,6 +73,7 @@ ${colors.bold}USAGE${colors.reset}
   msh --list-custom        List custom models
   msh --remove-model <id>  Remove custom model
   msh --provider <name>    Set provider
+  msh --thinking <level>   Set thinking level (off, low, medium, high)
   msh --themes             List available themes
   msh --theme <name>       Set color theme
   msh --repo-context       Enable project context detection
@@ -565,7 +566,7 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
   const spinner = createSpinner(`Translating with ${customModel ? customModel.name : (model as Model).name}`);
 
   try {
-    const command = await translateToCommand(apiKey, model, query, cwd, history, useRepoContext);
+    const command = await translateToCommand(apiKey, model, query, cwd, history, useRepoContext, config);
     spinner.stop();
 
     if (options.dryRun) {
@@ -574,6 +575,7 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
 
       console.log(`${colors.dim}Query:${colors.reset} ${query}`);
       console.log(`${colors.dim}Model:${colors.reset} ${model.name}`);
+      console.log(`${colors.dim}Thinking:${colors.reset} ${config.thinkingLevel}`);
       if (useRepoContext) {
         console.log(`${colors.dim}Project context:${colors.reset} enabled`);
       }
@@ -835,6 +837,20 @@ async function main() {
     config.safetyLevel = level as "strict" | "moderate" | "relaxed";
     saveConfig(config);
     console.log(`${colors.success}✓ Safety level set to ${level}${colors.reset}`);
+    return;
+  }
+
+  if (args[0] === "--thinking" && args[1]) {
+    const level = args[1].toLowerCase();
+    if (level !== "off" && level !== "low" && level !== "medium" && level !== "high") {
+      console.error(`${colors.error}Unknown thinking level: ${level}${colors.reset}`);
+      console.error(`Valid levels: off, low, medium, high`);
+      process.exit(1);
+    }
+    const config = loadConfig();
+    config.thinkingLevel = level as "off" | "low" | "medium" | "high";
+    saveConfig(config);
+    console.log(`${colors.success}✓ Thinking level set to ${level}${colors.reset}`);
     return;
   }
 

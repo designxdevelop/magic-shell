@@ -15,8 +15,13 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 
 | Model | Description |
 |-------|-------------|
-| `kimi-k2.6-free` | Moonshot's latest model (default) |
-| `deepseek-v4-flash-free` | DeepSeek's latest fast model |
+| `minimax-m2.5-free` | MiniMax's free model (default) |
+| `ling-2.6-flash-free` | Ling's free flash model |
+| `hy3-preview-free` | Hy3 preview model |
+| `nemotron-3-super-free` | NVIDIA Nemotron free trial model |
+| `trinity-large-preview-free` | Trinity large preview model |
+| `big-pickle` | OpenCode stealth model |
+| `gpt-5-nano` | OpenAI's free lightweight GPT model |
 
 ### Premium Models
 
@@ -39,7 +44,7 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 | `gpt-5.3-codex` | OpenAI's latest coding-focused GPT model |
 
 <Aside type="tip">
-  For most shell commands, `kimi-k2.6-free` is a good default for quick experiments.
+  For most shell commands, `minimax-m2.5-free` is a good default for quick experiments.
 </Aside>
 
 ### Get an API Key
@@ -114,7 +119,7 @@ Press `Ctrl+X S` to open the provider switcher.
 msh --models
 
 # Set default model
-msh --model kimi-k2.6-free
+msh --model minimax-m2.5-free
 ```
 
 ### Via TUI
@@ -125,9 +130,9 @@ Press `Ctrl+X M` to open the model picker.
 
 | Use Case | Recommended Model |
 |----------|------------------|
-| Quick commands | `kimi-k2.6-free` |
+| Quick commands | `minimax-m2.5-free` |
 | Complex git operations | `claude-sonnet-4-6` |
-| System administration | `deepseek-v4-flash-free` or `minimax-m2.7` |
+| System administration | `ling-2.6-flash-free` or `minimax-m2.7` |
 | Multi-step tasks | `claude-opus-4-7` or `kimi-k2-thinking` |
 | Learning/experimenting | Any free model |
 

@@ -6,6 +6,8 @@ export type Provider =
   | "workers-ai"
   | "custom";
 
+export type ThinkingLevel = "off" | "low" | "medium" | "high";
+
 export interface Model {
   id: string;
   name: string;
@@ -274,21 +276,66 @@ export const WORKERS_AI_MODELS: Model[] = [
 export const OPENCODE_ZEN_MODELS: Model[] = [
   // Free latest-generation models (great for trying out)
   {
-    id: "kimi-k2.6-free",
-    name: "Kimi K2.6 Free",
-    description: "Moonshot's latest model (free, limited time)",
+    id: "minimax-m2.5-free",
+    name: "MiniMax M2.5 Free",
+    description: "MiniMax's free model (limited time)",
     category: "smart",
     provider: "opencode-zen",
-    contextLength: 262144,
+    contextLength: 196608,
     free: true,
   },
   {
-    id: "deepseek-v4-flash-free",
-    name: "DeepSeek V4 Flash Free",
-    description: "DeepSeek's latest fast model (free, limited time)",
+    id: "ling-2.6-flash-free",
+    name: "Ling 2.6 Flash Free",
+    description: "Ling's free flash model (limited time)",
     category: "fast",
     provider: "opencode-zen",
-    contextLength: 1048576,
+    contextLength: 131072,
+    free: true,
+  },
+  {
+    id: "hy3-preview-free",
+    name: "Hy3 Preview Free",
+    description: "Hy3 preview model (free, limited time)",
+    category: "smart",
+    provider: "opencode-zen",
+    contextLength: 131072,
+    free: true,
+  },
+  {
+    id: "nemotron-3-super-free",
+    name: "Nemotron 3 Super Free",
+    description: "NVIDIA Nemotron free trial model",
+    category: "smart",
+    provider: "opencode-zen",
+    contextLength: 131072,
+    free: true,
+  },
+  {
+    id: "trinity-large-preview-free",
+    name: "Trinity Large Preview Free",
+    description: "Trinity large preview model (free, limited time)",
+    category: "smart",
+    provider: "opencode-zen",
+    contextLength: 131072,
+    free: true,
+  },
+  {
+    id: "big-pickle",
+    name: "Big Pickle",
+    description: "OpenCode stealth model (free, limited time)",
+    category: "smart",
+    provider: "opencode-zen",
+    contextLength: 131072,
+    free: true,
+  },
+  {
+    id: "gpt-5-nano",
+    name: "GPT 5 Nano",
+    description: "OpenAI's free lightweight GPT model",
+    category: "fast",
+    provider: "opencode-zen",
+    contextLength: 400000,
     free: true,
   },
   {
@@ -495,6 +542,7 @@ export interface Config {
   cloudflareAccountId?: string;
   cloudflareAiGatewayId?: string;
   defaultModel: string;
+  thinkingLevel: ThinkingLevel;
   safetyLevel: "strict" | "moderate" | "relaxed";
   dryRunByDefault: boolean;
   blockedCommands: string[];

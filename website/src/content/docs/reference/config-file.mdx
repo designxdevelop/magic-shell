@@ -18,7 +18,8 @@ Magic Shell stores configuration in `~/.magic-shell/config.json`.
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "kimi-k2.6-free",
+  "defaultModel": "minimax-m2.5-free",
+  "thinkingLevel": "low",
   "safetyLevel": "moderate",
   "dryRunByDefault": false,
   "repoContext": false,
@@ -52,11 +53,28 @@ The model ID to use for translations.
 
 ```json
 {
-  "defaultModel": "kimi-k2.6-free"
+  "defaultModel": "minimax-m2.5-free"
 }
 ```
 
 Run `msh --models` to see available models for your provider.
+
+### thinkingLevel
+
+Controls provider thinking/reasoning depth for supported models.
+
+| Value | Description |
+|-------|-------------|
+| `"off"` | Do not request provider thinking controls |
+| `"low"` | Low-cost reasoning (default) |
+| `"medium"` | More reasoning for harder translations |
+| `"high"` | Maximum reasoning for supported models |
+
+```json
+{
+  "thinkingLevel": "low"
+}
+```
 
 ### safetyLevel
 
@@ -190,7 +208,7 @@ msh --remove-model <id>  # Remove a custom model
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "kimi-k2.6-free",
+  "defaultModel": "minimax-m2.5-free",
   "safetyLevel": "strict",
   "dryRunByDefault": true,
   "theme": "nord"
@@ -202,7 +220,7 @@ msh --remove-model <id>  # Remove a custom model
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "kimi-k2.6-free",
+  "defaultModel": "minimax-m2.5-free",
   "safetyLevel": "relaxed",
   "dryRunByDefault": false,
   "theme": "dracula"

@@ -1,11 +1,11 @@
 ---
 title: AI Providers
-description: Choose between OpenCode Zen and OpenRouter for AI-powered command translation.
+description: Choose between OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
-Magic Shell supports multiple AI providers, including OpenCode Zen, OpenRouter, and custom models for local or remote endpoints.
+Magic Shell supports multiple AI providers, including OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models for local or remote endpoints.
 
 ## OpenCode Zen (Recommended)
 
@@ -17,27 +17,26 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 |-------|-------------|
 | `kimi-k2.6-free` | Moonshot's latest model (default) |
 | `deepseek-v4-flash-free` | DeepSeek's latest fast model |
-| `minimax-m2.5-free` | Free MiniMax model |
 
 ### Premium Models
 
 | Model | Description |
 |-------|-------------|
-| `claude-sonnet-4-5` | Anthropic's hybrid reasoning model |
-| `claude-opus-4-5` | Anthropic's most capable model |
+| `claude-sonnet-4-6` | Anthropic's latest Sonnet model |
+| `claude-opus-4-7` | Anthropic's latest Opus model |
 | `claude-haiku-4-5` | Anthropic's latest fast model |
 | `kimi-k2.6` | Moonshot's latest Kimi model |
 | `kimi-k2-thinking` | Kimi K2 with extended reasoning |
 | `deepseek-v4-pro` | DeepSeek's latest high-context model |
-| `deepseek-v4-flash` | DeepSeek's latest fast model |
 | `glm-5.1` | Z.ai's latest GLM model |
 | `mimo-v2.5` | Xiaomi's latest long-context MiMo model |
 | `mimo-v2.5-pro` | Xiaomi's latest pro MiMo model |
 | `minimax-m2.7` | MiniMax's latest model |
-| `gemini-3-pro` | Google's high-end Gemini model |
+| `gemini-3.1-pro` | Google's high-end Gemini model |
 | `gemini-3-flash` | Google's fast Gemini model |
-| `gpt-5.2` | OpenAI's flagship GPT model |
-| `gpt-5.2-codex` | OpenAI's coding-focused GPT model |
+| `gpt-5.5` | OpenAI's latest flagship GPT model |
+| `gpt-5.5-pro` | OpenAI's latest high-capability reasoning model |
+| `gpt-5.3-codex` | OpenAI's latest coding-focused GPT model |
 
 <Aside type="tip">
   For most shell commands, `kimi-k2.6-free` is a good default for quick experiments.
@@ -54,13 +53,7 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 
 OpenRouter provides access to models from many providers through a single API.
 
-### Free Models
-
-| Model | Description |
-|-------|-------------|
-| `minimax/minimax-m2.5:free` | Free MiniMax model |
-
-### Premium Models
+### Models
 
 | Model | Description |
 |-------|-------------|
@@ -72,6 +65,13 @@ OpenRouter provides access to models from many providers through a single API.
 | `z-ai/glm-5.1` | Z.ai's latest GLM model |
 | `z-ai/glm-5-turbo` | Z.ai's latest fast GLM model |
 | `minimax/minimax-m2.7` | MiniMax's latest model |
+| `openai/gpt-latest` | OpenAI GPT latest alias |
+| `openai/gpt-5.5` | OpenAI's latest flagship GPT model |
+| `openai/gpt-5.5-pro` | OpenAI's latest high-capability reasoning model |
+| `anthropic/claude-sonnet-latest` | Claude Sonnet latest alias |
+| `anthropic/claude-sonnet-4.6` | Anthropic's latest Sonnet model |
+| `anthropic/claude-opus-latest` | Claude Opus latest alias |
+| `anthropic/claude-opus-4.7` | Anthropic's latest Opus model |
 
 ### Get an API Key
 
@@ -90,6 +90,15 @@ msh --provider openrouter
 
 # Switch back to OpenCode Zen
 msh --provider opencode-zen
+
+# Switch to Vercel AI Gateway
+msh --provider vercel-ai-gateway
+
+# Switch to Cloudflare AI Gateway
+msh --provider cloudflare-ai-gateway
+
+# Switch to Workers AI
+msh --provider workers-ai
 ```
 
 ### Via TUI
@@ -117,9 +126,9 @@ Press `Ctrl+X M` to open the model picker.
 | Use Case | Recommended Model |
 |----------|------------------|
 | Quick commands | `kimi-k2.6-free` |
-| Complex git operations | `claude-sonnet-4.5` |
-| System administration | `deepseek-v4-flash` or `minimax-m2.7` |
-| Multi-step tasks | `claude-opus-4.5` or `kimi-k2-thinking` |
+| Complex git operations | `claude-sonnet-4-6` |
+| System administration | `deepseek-v4-flash-free` or `minimax-m2.7` |
+| Multi-step tasks | `claude-opus-4-7` or `kimi-k2-thinking` |
 | Learning/experimenting | Any free model |
 
 ## Environment Variables
@@ -132,6 +141,14 @@ export OPENCODE_ZEN_API_KEY="your-key"
 
 # OpenRouter  
 export OPENROUTER_API_KEY="your-key"
+
+# Vercel AI Gateway
+export AI_GATEWAY_API_KEY="your-key"
+
+# Cloudflare providers
+export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
+export CLOUDFLARE_AI_GATEWAY_API_KEY="your-gateway-token"
 ```
 
 Keys stored in the system keychain (via `msh --setup`) take precedence over environment variables.

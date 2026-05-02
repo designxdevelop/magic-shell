@@ -22,7 +22,20 @@ import {
 import { spawn } from "child_process";
 import { cwd as getCwd } from "process";
 
-import { ALL_MODELS, OPENCODE_ZEN_MODELS, OPENROUTER_MODELS, type Model, type CustomModel, type CommandHistory, type Config, type Provider, type ChatMessage, type SafetyAnalysis, isCustomModel } from "./lib/types";
+import {
+  ALL_MODELS,
+  OPENCODE_ZEN_MODELS,
+  getProviderDisplayName,
+  getProviderModels,
+  type Model,
+  type CustomModel,
+  type CommandHistory,
+  type Config,
+  type Provider,
+  type ChatMessage,
+  type SafetyAnalysis,
+  isCustomModel,
+} from "./lib/types";
 import { loadConfig, saveConfig, getApiKey, setApiKey, loadHistory, addToHistory, getCustomModels, getCustomModel } from "./lib/config";
 import { analyzeCommand, getSeverityColor } from "./lib/safety";
 import { translateToCommand, getShellInfo } from "./lib/api";
@@ -48,6 +61,23 @@ let statusBarText: TextRenderable;
 let chatScrollBox: ScrollBoxRenderable;
 let inputField: TextareaRenderable;
 let inputContainer: BoxRenderable;
+
+function getApiKeyUrl(provider: Provider): string {
+  switch (provider) {
+    case "opencode-zen":
+      return "https://opencode.ai/auth";
+    case "openrouter":
+      return "https://openrouter.ai/keys";
+    case "vercel-ai-gateway":
+      return "https://vercel.com/docs/ai-gateway";
+    case "cloudflare-ai-gateway":
+      return "https://developers.cloudflare.com/ai-gateway/";
+    case "workers-ai":
+      return "https://dash.cloudflare.com/profile/api-tokens";
+    case "custom":
+      return "";
+  }
+}
 let inputHintText: TextRenderable;
 let helpBarText: TextRenderable;
 let modelSelector: SelectRenderable | null = null;
@@ -136,12 +166,27 @@ async function showProviderSetup() {
       description: "Access to many models from various providers",
       value: "openrouter",
     },
+    {
+      name: "Vercel AI Gateway",
+      description: "Unified model gateway using AI_GATEWAY_API_KEY",
+      value: "vercel-ai-gateway",
+    },
+    {
+      name: "Cloudflare AI Gateway",
+      description: "Cloudflare gateway for provider and Workers AI models",
+      value: "cloudflare-ai-gateway",
+    },
+    {
+      name: "Cloudflare Workers AI",
+      description: "Cloudflare-hosted models via Workers AI",
+      value: "workers-ai",
+    },
   ];
 
   providerSelector = new SelectRenderable(renderer, {
     id: "provider-select",
     width: 60,
-    height: 6,
+    height: 10,
     options,
     backgroundColor: "#1e293b",
     focusedBackgroundColor: "#1e293b",
@@ -196,12 +241,12 @@ async function showApiKeyInput(provider: Provider) {
 
   const title = new TextRenderable(renderer, {
     id: "apikey-title",
-    content: t`${bold(fg("#60a5fa")(`${provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter"} Setup`))}`,
+    content: t`${bold(fg("#60a5fa")(`${getProviderDisplayName(provider)} Setup`))}`,
     marginBottom: 1,
   });
   container.add(title);
 
-  const url = provider === "opencode-zen" ? "https://opencode.ai/auth" : "https://openrouter.ai/keys";
+  const url = getApiKeyUrl(provider);
   const instructions = new TextRenderable(renderer, {
     id: "apikey-instructions",
     content: t`Get your API key from: ${fg("#22c55e")(url)}
@@ -214,7 +259,7 @@ Enter your API key below:`,
   const input = new InputRenderable(renderer, {
     id: "api-key-input",
     width: 70,
-    placeholder: provider === "opencode-zen" ? "zen_..." : "sk-or-v1-...",
+    placeholder: provider === "openrouter" ? "sk-or-v1-..." : "API key or token",
     backgroundColor: "#1e293b",
     focusedBackgroundColor: "#334155",
     textColor: "#f8fafc",
@@ -244,12 +289,8 @@ ${fg("#64748b")("Press Enter to save | Ctrl+C to exit")}`,
     if (value.trim()) {
       setApiKey(provider, value.trim());
 
-      // Set default model based on provider
-      if (provider === "opencode-zen") {
-        currentModel = OPENCODE_ZEN_MODELS.find((m) => m.id === "kimi-k2.6-free") || OPENCODE_ZEN_MODELS[0];
-      } else {
-        currentModel = OPENROUTER_MODELS[0];
-      }
+      const providerModels = getProviderModels(provider);
+      currentModel = providerModels.find((m) => !m.disabled) || providerModels[0] || OPENCODE_ZEN_MODELS[0];
       config.defaultModel = currentModel.id;
       saveConfig(config);
 
@@ -398,7 +439,7 @@ function createMainUI() {
 
 function getStatusBarContent(): StyledText {
   const theme = getTheme();
-  const providerName = config.provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter";
+  const providerName = getProviderDisplayName(config.provider);
   const safeModeIndicator = dryRunMode ? fg(theme.colors.warning)("[DRY RUN]") : "";
   const safetyLevelColor = config.safetyLevel === "strict" ? theme.colors.warning : config.safetyLevel === "relaxed" ? theme.colors.error : theme.colors.success;
   const safetyIndicator = fg(safetyLevelColor)(`[${config.safetyLevel}]`);
@@ -421,7 +462,7 @@ function getInputHintContent(): StyledText {
 }
 
 function getWelcomeMessage(): string {
-  const providerName = config.provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter";
+  const providerName = getProviderDisplayName(config.provider);
   return `Ready. Using ${providerName}.\nType what you want to do, or press Ctrl+X P for command palette.`;
 }
 
@@ -1050,7 +1091,7 @@ Tips:
 
 async function showConfig() {
   const theme = getTheme();
-  const providerName = config.provider === "opencode-zen" ? "OpenCode Zen" : config.provider === "openrouter" ? "OpenRouter" : "Custom";
+  const providerName = getProviderDisplayName(config.provider);
   const apiKey = await getApiKey(config.provider);
   const apiKeyStatus = apiKey ? "configured" : "not set";
   const isCustom = isCustomModel(currentModel);
@@ -1099,7 +1140,7 @@ async function switchProvider() {
     left: 2,
     top: 4,
     width: 65,
-    height: 12,
+    height: 15,
     backgroundColor: "#1e293b",
     border: true,
     borderColor: "#60a5fa",
@@ -1112,26 +1153,29 @@ async function switchProvider() {
   renderer.root.add(container);
 
   // Check which providers have API keys configured
-  const zenKey = await getApiKey("opencode-zen");
-  const orKey = await getApiKey("openrouter");
-
-  const options: SelectOption[] = [
-    {
-      name: `OpenCode Zen${zenKey ? " (configured)" : ""}`,
-      description: "Curated models optimized for coding. Has free models!",
-      value: "opencode-zen",
-    },
-    {
-      name: `OpenRouter${orKey ? " (configured)" : ""}`,
-      description: "Access to many models from various providers",
-      value: "openrouter",
-    },
+  const providers: Array<{ provider: Provider; description: string }> = [
+    { provider: "opencode-zen", description: "Curated models optimized for coding. Has free models!" },
+    { provider: "openrouter", description: "Access to many models from various providers" },
+    { provider: "vercel-ai-gateway", description: "Unified model gateway using AI_GATEWAY_API_KEY" },
+    { provider: "cloudflare-ai-gateway", description: "Cloudflare gateway for provider and Workers AI models" },
+    { provider: "workers-ai", description: "Cloudflare-hosted models via Workers AI" },
   ];
+
+  const options: SelectOption[] = await Promise.all(
+    providers.map(async ({ provider, description }) => {
+      const key = await getApiKey(provider);
+      return {
+        name: `${getProviderDisplayName(provider)}${key ? " (configured)" : ""}`,
+        description,
+        value: provider,
+      };
+    }),
+  );
 
   const selector = new SelectRenderable(renderer, {
     id: "provider-switch-select",
     width: "100%",
-    height: 6,
+    height: 9,
     options,
     backgroundColor: "transparent",
     focusedBackgroundColor: "transparent",
@@ -1158,7 +1202,7 @@ async function switchProvider() {
       // Already have a key, just switch
       config.provider = newProvider;
       // Set default model for new provider
-      const models = newProvider === "opencode-zen" ? OPENCODE_ZEN_MODELS : OPENROUTER_MODELS;
+      const models = getProviderModels(newProvider);
       currentModel = models.find((m) => m.id === config.defaultModel) || models[0];
       config.defaultModel = currentModel.id;
       saveConfig(config);
@@ -1167,7 +1211,7 @@ async function switchProvider() {
       statusBarText.content = getStatusBarContent();
       closeSelector();
 
-      const providerName = newProvider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter";
+      const providerName = getProviderDisplayName(newProvider);
       addSystemMessage(`Switched to ${providerName}. Model: ${currentModel.name}`);
     } else {
       // Need to set up API key - go to full setup
@@ -1206,7 +1250,7 @@ function showModelSelector() {
     border: true,
     borderColor: "#60a5fa",
     borderStyle: "single",
-    title: `Select Model (${config.provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter"})`,
+    title: `Select Model (${getProviderDisplayName(config.provider)})`,
     titleAlignment: "center",
     zIndex: 100,
     padding: 1,
@@ -1214,7 +1258,7 @@ function showModelSelector() {
   renderer.root.add(container);
 
   // Filter models by current provider, exclude disabled models
-  const allModels = config.provider === "opencode-zen" ? OPENCODE_ZEN_MODELS : OPENROUTER_MODELS;
+  const allModels = getProviderModels(config.provider);
   const availableModels = allModels.filter((m) => !m.disabled).sort((a, b) => a.name.localeCompare(b.name));
 
   // Get custom models
@@ -1391,7 +1435,7 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     },
     {
       name: "Switch Provider",
-      description: `Current: ${config.provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter"}`,
+      description: `Current: ${getProviderDisplayName(config.provider)}`,
       key: "s",
       chord: "s",
       action: () => switchProvider(),

@@ -4,8 +4,9 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText, type LanguageModel } from "ai";
 
-import type { CommandHistory, Model, Config, CustomModel } from "./types";
+import type { CommandHistory, Model, Config, CustomModel, Provider } from "./types";
 import { isCustomModel } from "./types";
+import { loadConfig } from "./config";
 import { detectShell, getShellSyntaxHints, getPlatformPaths, type ShellInfo } from "./shell";
 import { detectRepoContext, formatRepoContext } from "./repo-context";
 
@@ -14,12 +15,6 @@ import { detectRepoContext, formatRepoContext } from "./repo-context";
 type ZenApiType = "openai-responses" | "anthropic" | "openai-compatible" | "google";
 
 function getZenApiType(modelId: string): ZenApiType {
-  // Zen has a small handful of models that don't follow the ID prefix convention.
-  // Keep these overrides in sync with https://opencode.ai/docs/zen/
-  if (modelId === "minimax-m2.5-free") {
-    return "anthropic";
-  }
-
   // OpenAI Responses API models (GPT models)
   if (modelId.startsWith("gpt-")) {
     return "openai-responses";
@@ -181,6 +176,118 @@ async function callOpenRouter(apiKey: string, modelId: string, systemPrompt: str
   return data.choices[0]?.message?.content?.trim() || "";
 }
 
+async function callOpenAICompatibleFetch(
+  baseURL: string,
+  apiKey: string,
+  modelId: string,
+  systemPrompt: string,
+  userInput: string,
+  headers: Record<string, string> = {},
+  includeAuthorization = true,
+): Promise<string> {
+  const requestHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...headers,
+  };
+  if (includeAuthorization) {
+    requestHeaders.Authorization = `Bearer ${apiKey}`;
+  }
+
+  const response = await fetch(`${baseURL.replace(/\/$/, "")}/chat/completions`, {
+    method: "POST",
+    headers: requestHeaders,
+    body: JSON.stringify({
+      model: modelId,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userInput },
+      ],
+      max_tokens: 500,
+      temperature: 0.1,
+      stream: false,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorMessage = `API request failed: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.message) {
+        errorMessage = errorData.error.message;
+      } else if (errorData.errors?.[0]?.message) {
+        errorMessage = errorData.errors[0].message;
+      }
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error.message);
+  }
+  if (data.errors?.[0]?.message) {
+    throw new Error(data.errors[0].message);
+  }
+
+  const choices = data.choices || data.result?.choices;
+  return choices?.[0]?.message?.content?.trim() || "";
+}
+
+function getCloudflareAccountId(config: Config): string {
+  return config.cloudflareAccountId || process.env.CLOUDFLARE_ACCOUNT_ID || process.env.CF_ACCOUNT_ID || "";
+}
+
+function getCloudflareGatewayId(config: Config): string {
+  return config.cloudflareAiGatewayId || process.env.CLOUDFLARE_AI_GATEWAY_ID || process.env.CF_AIG_GATEWAY_ID || "default";
+}
+
+async function callGatewayProvider(provider: Provider, apiKey: string, modelId: string, systemPrompt: string, userInput: string): Promise<string> {
+  const config = loadConfig();
+
+  switch (provider) {
+    case "vercel-ai-gateway":
+      return await callOpenAICompatibleFetch(
+        "https://ai-gateway.vercel.sh/v1",
+        apiKey,
+        modelId,
+        systemPrompt,
+        userInput,
+      );
+    case "cloudflare-ai-gateway": {
+      const accountId = getCloudflareAccountId(config);
+      if (!accountId) {
+        throw new Error("Cloudflare account ID is required. Set cloudflareAccountId in config or CLOUDFLARE_ACCOUNT_ID.");
+      }
+      const gatewayId = getCloudflareGatewayId(config);
+      return await callOpenAICompatibleFetch(
+        `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`,
+        apiKey,
+        modelId,
+        systemPrompt,
+        userInput,
+        { "cf-aig-authorization": `Bearer ${apiKey}` },
+        false,
+      );
+    }
+    case "workers-ai": {
+      const accountId = getCloudflareAccountId(config);
+      if (!accountId) {
+        throw new Error("Cloudflare account ID is required. Set cloudflareAccountId in config or CLOUDFLARE_ACCOUNT_ID.");
+      }
+      return await callOpenAICompatibleFetch(
+        `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+        apiKey,
+        modelId,
+        systemPrompt,
+        userInput,
+      );
+    }
+    default:
+      throw new Error(`Unsupported gateway provider: ${provider}`);
+  }
+}
+
 // Debug flag - set to true to see API responses
 const DEBUG_API = process.env.DEBUG_API === "1";
 
@@ -332,6 +439,8 @@ export async function translateToCommand(apiKey: string, model: Model | CustomMo
     rawCommand = await callCustomModel(model, systemPrompt, userInput);
   } else if (model.provider === "openrouter") {
     rawCommand = await callOpenRouter(apiKey, model.id, systemPrompt, userInput);
+  } else if (model.provider === "vercel-ai-gateway" || model.provider === "cloudflare-ai-gateway" || model.provider === "workers-ai") {
+    rawCommand = await callGatewayProvider(model.provider, apiKey, model.id, systemPrompt, userInput);
   } else {
     // OpenCode Zen - determine API type
     const apiType = getZenApiType(model.id);

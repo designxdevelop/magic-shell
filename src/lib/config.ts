@@ -11,11 +11,19 @@ const HISTORY_FILE = join(CONFIG_DIR, "history.json");
 // Keys for keychain storage
 const KEYCHAIN_OPENROUTER = "openrouter-api-key";
 const KEYCHAIN_OPENCODE_ZEN = "opencode-zen-api-key";
+const KEYCHAIN_VERCEL_AI_GATEWAY = "vercel-ai-gateway-api-key";
+const KEYCHAIN_CLOUDFLARE_AI_GATEWAY = "cloudflare-ai-gateway-api-key";
+const KEYCHAIN_WORKERS_AI = "workers-ai-api-key";
 
 const DEFAULT_CONFIG: Config = {
   provider: "opencode-zen",
   openrouterApiKey: "", // Only used as fallback if keychain unavailable
   opencodeZenApiKey: "", // Only used as fallback if keychain unavailable
+  vercelAiGatewayApiKey: "", // Only used as fallback if keychain unavailable
+  cloudflareAiGatewayApiKey: "", // Only used as fallback if keychain unavailable
+  workersAiApiKey: "", // Only used as fallback if keychain unavailable
+  cloudflareAccountId: "",
+  cloudflareAiGatewayId: "default",
   defaultModel: "kimi-k2.6-free", // Current free OpenCode Zen model
   safetyLevel: "moderate",
   dryRunByDefault: false,
@@ -62,6 +70,9 @@ export function saveConfig(config: Config): void {
   if (isSecureStorageAvailable()) {
     configToSave.openrouterApiKey = "";
     configToSave.opencodeZenApiKey = "";
+    configToSave.vercelAiGatewayApiKey = "";
+    configToSave.cloudflareAiGatewayApiKey = "";
+    configToSave.workersAiApiKey = "";
   }
 
   writeFileSync(CONFIG_FILE, JSON.stringify(configToSave, null, 2));
@@ -75,16 +86,38 @@ export async function getApiKey(provider: Provider): Promise<string> {
   } else if (provider === "opencode-zen") {
     const envKey = process.env.OPENCODE_ZEN_API_KEY;
     if (envKey) return envKey;
+  } else if (provider === "vercel-ai-gateway") {
+    const envKey = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_AI_GATEWAY_API_KEY;
+    if (envKey) return envKey;
+  } else if (provider === "cloudflare-ai-gateway") {
+    const envKey = process.env.CLOUDFLARE_AI_GATEWAY_API_KEY || process.env.CF_AIG_TOKEN;
+    if (envKey) return envKey;
+  } else if (provider === "workers-ai") {
+    const envKey = process.env.CLOUDFLARE_API_TOKEN || process.env.CLOUDFLARE_API_KEY;
+    if (envKey) return envKey;
   }
 
   // Try to get from secure storage (keychain)
-  const keychainKey = provider === "openrouter" ? KEYCHAIN_OPENROUTER : KEYCHAIN_OPENCODE_ZEN;
+  const keychainKey = getKeychainKey(provider);
   const secureKey = await getSecret(keychainKey);
   if (secureKey) return secureKey;
 
   // Fallback to config file (for platforms without secure storage)
   const config = loadConfig();
-  return provider === "openrouter" ? config.openrouterApiKey : config.opencodeZenApiKey;
+  switch (provider) {
+    case "openrouter":
+      return config.openrouterApiKey;
+    case "opencode-zen":
+      return config.opencodeZenApiKey;
+    case "vercel-ai-gateway":
+      return config.vercelAiGatewayApiKey || "";
+    case "cloudflare-ai-gateway":
+      return config.cloudflareAiGatewayApiKey || "";
+    case "workers-ai":
+      return config.workersAiApiKey || "";
+    case "custom":
+      return "";
+  }
 }
 
 export async function setApiKey(provider: Provider, key: string): Promise<void> {
@@ -92,19 +125,50 @@ export async function setApiKey(provider: Provider, key: string): Promise<void> 
   config.provider = provider;
 
   // Try to store in secure storage first
-  const keychainKey = provider === "openrouter" ? KEYCHAIN_OPENROUTER : KEYCHAIN_OPENCODE_ZEN;
+  const keychainKey = getKeychainKey(provider);
   const stored = await setSecret(keychainKey, key);
 
   if (!stored) {
     // Fallback: store in config file (less secure)
-    if (provider === "openrouter") {
-      config.openrouterApiKey = key;
-    } else {
-      config.opencodeZenApiKey = key;
+    switch (provider) {
+      case "openrouter":
+        config.openrouterApiKey = key;
+        break;
+      case "opencode-zen":
+        config.opencodeZenApiKey = key;
+        break;
+      case "vercel-ai-gateway":
+        config.vercelAiGatewayApiKey = key;
+        break;
+      case "cloudflare-ai-gateway":
+        config.cloudflareAiGatewayApiKey = key;
+        break;
+      case "workers-ai":
+        config.workersAiApiKey = key;
+        break;
+      case "custom":
+        break;
     }
   }
 
   saveConfig(config);
+}
+
+function getKeychainKey(provider: Provider): string {
+  switch (provider) {
+    case "openrouter":
+      return KEYCHAIN_OPENROUTER;
+    case "opencode-zen":
+      return KEYCHAIN_OPENCODE_ZEN;
+    case "vercel-ai-gateway":
+      return KEYCHAIN_VERCEL_AI_GATEWAY;
+    case "cloudflare-ai-gateway":
+      return KEYCHAIN_CLOUDFLARE_AI_GATEWAY;
+    case "workers-ai":
+      return KEYCHAIN_WORKERS_AI;
+    case "custom":
+      return "custom-api-key";
+  }
 }
 
 export function loadHistory(): CommandHistory[] {

@@ -18,7 +18,19 @@
 
 import { spawn } from "child_process";
 import { cwd as getCwd } from "process";
-import { OPENCODE_ZEN_MODELS, OPENROUTER_MODELS, ALL_MODELS, type Model, type Provider, type CustomModel } from "./lib/types";
+import {
+  OPENCODE_ZEN_MODELS,
+  OPENROUTER_MODELS,
+  VERCEL_AI_GATEWAY_MODELS,
+  CLOUDFLARE_AI_GATEWAY_MODELS,
+  WORKERS_AI_MODELS,
+  ALL_MODELS,
+  getProviderDisplayName,
+  getProviderModels,
+  type Model,
+  type Provider,
+  type CustomModel,
+} from "./lib/types";
 import { loadConfig, saveConfig, getApiKey, setApiKey, loadHistory, addCustomModel, removeCustomModel, getCustomModels, getCustomModel } from "./lib/config";
 import { analyzeCommand } from "./lib/safety";
 import { translateToCommand, getShellInfo } from "./lib/api";
@@ -60,7 +72,7 @@ ${colors.bold}USAGE${colors.reset}
   msh --add-model          Add custom model (LM Studio, Ollama, etc.)
   msh --list-custom        List custom models
   msh --remove-model <id>  Remove custom model
-  msh --provider <name>    Set provider (opencode-zen or openrouter)
+  msh --provider <name>    Set provider
   msh --themes             List available themes
   msh --theme <name>       Set color theme
   msh --repo-context       Enable project context detection
@@ -95,6 +107,10 @@ ${colors.bold}THEMES${colors.reset}
 ${colors.bold}ENVIRONMENT${colors.reset}
   OPENCODE_ZEN_API_KEY     API key for OpenCode Zen
   OPENROUTER_API_KEY       API key for OpenRouter
+  AI_GATEWAY_API_KEY       API key for Vercel AI Gateway
+  CLOUDFLARE_API_TOKEN     API token for Cloudflare Workers AI
+  CLOUDFLARE_ACCOUNT_ID    Account ID for Cloudflare providers
+  CLOUDFLARE_AI_GATEWAY_API_KEY API key/token for Cloudflare AI Gateway
 
 ${colors.bold}CONFIG${colors.reset}
   ~/.magic-shell/config.json
@@ -142,6 +158,24 @@ function printModels() {
     }
   }
 
+  const providerSections: Array<[string, Model[], Provider]> = [
+    ["Vercel AI Gateway Models", VERCEL_AI_GATEWAY_MODELS, "vercel-ai-gateway"],
+    ["Cloudflare AI Gateway Models", CLOUDFLARE_AI_GATEWAY_MODELS, "cloudflare-ai-gateway"],
+    ["Cloudflare Workers AI Models", WORKERS_AI_MODELS, "workers-ai"],
+  ];
+
+  for (const [title, models, provider] of providerSections) {
+    console.log(`\n${colors.bold}${title}${colors.reset}\n`);
+    const sortedModels = [...models].sort((a, b) => a.name.localeCompare(b.name));
+    for (const model of sortedModels) {
+      const isCurrent = config.provider === provider && config.defaultModel === model.id;
+      const marker = isCurrent ? colors.success + "→ " : "  ";
+      const category = colors.dim + `[${model.category}]` + colors.reset;
+      console.log(`${marker}${model.id} ${category}`);
+      console.log(`    ${colors.dim}${model.description}${colors.reset}`);
+    }
+  }
+
   // Custom models section
   if (customModels.length > 0) {
     console.log(`\n${colors.bold}Custom Models${colors.reset} ${colors.info}(custom)${colors.reset}\n`);
@@ -173,9 +207,8 @@ function validateApiKey(key: string, provider: Provider): string | null {
     return "API key seems too short (expected at least 20 characters)";
   }
 
-  // Both providers use sk- prefix (OpenRouter uses sk-or-, OpenCode Zen uses sk-)
-  if (!trimmed.startsWith("sk-")) {
-    const providerName = provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter";
+  if ((provider === "opencode-zen" || provider === "openrouter") && !trimmed.startsWith("sk-")) {
+    const providerName = getProviderDisplayName(provider);
     return `${providerName} API keys typically start with 'sk-'`;
   }
 
@@ -189,6 +222,23 @@ function validateApiKey(key: string, provider: Provider): string | null {
   }
 
   return null;
+}
+
+function getApiKeyUrl(provider: Provider): string {
+  switch (provider) {
+    case "opencode-zen":
+      return "https://opencode.ai/auth";
+    case "openrouter":
+      return "https://openrouter.ai/keys";
+    case "vercel-ai-gateway":
+      return "https://vercel.com/docs/ai-gateway";
+    case "cloudflare-ai-gateway":
+      return "https://developers.cloudflare.com/ai-gateway/";
+    case "workers-ai":
+      return "https://dash.cloudflare.com/profile/api-tokens";
+    case "custom":
+      return "";
+  }
 }
 
 async function setup() {
@@ -210,9 +260,18 @@ async function setup() {
   console.log("Select provider:");
   console.log("  1. OpenCode Zen (recommended, has free models)");
   console.log("  2. OpenRouter");
+  console.log("  3. Vercel AI Gateway");
+  console.log("  4. Cloudflare AI Gateway");
+  console.log("  5. Cloudflare Workers AI");
 
   const providerChoice = await question("\nChoice [1]: ");
-  const provider: Provider = providerChoice === "2" ? "openrouter" : "opencode-zen";
+  const providerChoices: Record<string, Provider> = {
+    "2": "openrouter",
+    "3": "vercel-ai-gateway",
+    "4": "cloudflare-ai-gateway",
+    "5": "workers-ai",
+  };
+  const provider: Provider = providerChoices[providerChoice] || "opencode-zen";
 
   // API key
   const existingKey = await getApiKey(provider);
@@ -221,7 +280,7 @@ async function setup() {
     if (useExisting.toLowerCase() !== "n") {
       console.log(`${colors.green}✓ Using existing API key${colors.reset}`);
     } else {
-      const url = provider === "opencode-zen" ? "https://opencode.ai/auth" : "https://openrouter.ai/keys";
+      const url = getApiKeyUrl(provider);
       console.log(`\nGet your API key from: ${colors.cyan}${url}${colors.reset}`);
 
       let validKey = false;
@@ -247,7 +306,7 @@ async function setup() {
       }
     }
   } else {
-    const url = provider === "opencode-zen" ? "https://opencode.ai/auth" : "https://openrouter.ai/keys";
+    const url = getApiKeyUrl(provider);
     console.log(`\nGet your API key from: ${colors.cyan}${url}${colors.reset}`);
 
     let validKey = false;
@@ -275,7 +334,20 @@ async function setup() {
   }
 
   // Model selection
-  const models = provider === "opencode-zen" ? OPENCODE_ZEN_MODELS : OPENROUTER_MODELS;
+  const config = loadConfig();
+  if (provider === "cloudflare-ai-gateway" || provider === "workers-ai") {
+    const existingAccountId = config.cloudflareAccountId || process.env.CLOUDFLARE_ACCOUNT_ID || "";
+    if (!existingAccountId) {
+      const accountId = await question("\nCloudflare account ID: ");
+      config.cloudflareAccountId = accountId.trim();
+    }
+  }
+  if (provider === "cloudflare-ai-gateway") {
+    const gatewayId = await question(`Cloudflare AI Gateway ID [${config.cloudflareAiGatewayId || "default"}]: `);
+    config.cloudflareAiGatewayId = gatewayId.trim() || config.cloudflareAiGatewayId || "default";
+  }
+
+  const models = getProviderModels(provider);
   const freeModels = models.filter((m) => m.free);
 
   console.log("\nRecommended models:");
@@ -289,13 +361,12 @@ async function setup() {
   const modelIndex = parseInt(modelChoice || "1") - 1;
   const selectedModel = displayModels[modelIndex] || displayModels[0];
 
-  const config = loadConfig();
   config.provider = provider;
   config.defaultModel = selectedModel.id;
   saveConfig(config);
 
   console.log(`\n${colors.green}✓ Setup complete!${colors.reset}`);
-  console.log(`  Provider: ${provider === "opencode-zen" ? "OpenCode Zen" : "OpenRouter"}`);
+  console.log(`  Provider: ${getProviderDisplayName(provider)}`);
   console.log(`  Model: ${selectedModel.name}`);
   console.log(`\nTry: ${colors.cyan}msh "list all files"${colors.reset}\n`);
 
@@ -474,7 +545,8 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
   // Find current model - check custom models first
   const customModel = await getCustomModel(config.defaultModel);
   const builtInModel = ALL_MODELS.find((m) => m.id === config.defaultModel);
-  const model = customModel || builtInModel || (config.provider === "opencode-zen" ? OPENCODE_ZEN_MODELS[0] : OPENROUTER_MODELS[0]);
+  const fallbackModels = getProviderModels(config.provider);
+  const model = customModel || builtInModel || fallbackModels[0] || OPENCODE_ZEN_MODELS[0];
 
   // Check if we need an API key
   if (!customModel && !apiKey) {
@@ -688,15 +760,16 @@ async function main() {
 
   if (args[0] === "--provider" && args[1]) {
     const provider = args[1] as Provider;
-    if (provider !== "opencode-zen" && provider !== "openrouter") {
+    const validProviders: Provider[] = ["opencode-zen", "openrouter", "vercel-ai-gateway", "cloudflare-ai-gateway", "workers-ai"];
+    if (!validProviders.includes(provider)) {
       console.error(`${colors.error}Unknown provider: ${provider}${colors.reset}`);
-      console.error(`Valid providers: opencode-zen, openrouter`);
+      console.error(`Valid providers: ${validProviders.join(", ")}`);
       process.exit(1);
     }
     const config = loadConfig();
     config.provider = provider;
     // Reset to first non-disabled model of new provider
-    const models = provider === "opencode-zen" ? OPENCODE_ZEN_MODELS : OPENROUTER_MODELS;
+    const models = getProviderModels(provider);
     const firstAvailable = models.find((m) => !m.disabled) || models[0];
     config.defaultModel = firstAvailable.id;
     saveConfig(config);

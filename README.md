@@ -186,19 +186,17 @@ OpenCode Zen provides curated models optimized for coding tasks, including **fre
 
 - `kimi-k2.6-free` - Moonshot's latest model (default)
 - `deepseek-v4-flash-free` - DeepSeek's latest fast model
-- `minimax-m2.5-free` - Free MiniMax model
 
 **Premium Models:**
 
-- Claude Sonnet 4.5, Claude Opus 4.5
-- Claude Haiku 4.5
+- Claude Sonnet 4.6, Claude Opus 4.7, Claude Haiku 4.5
 - Kimi K2.6, Kimi K2 Thinking
-- DeepSeek V4 Pro, DeepSeek V4 Flash
+- DeepSeek V4 Pro
 - GLM 5.1
 - MiMo V2.5, MiMo V2.5 Pro
 - MiniMax M2.7
-- Gemini 3 Pro, Gemini 3 Flash
-- GPT 5.2, GPT 5.2 Codex, GPT 5.1 series
+- Gemini 3.1 Pro, Gemini 3 Flash
+- GPT 5.5, GPT 5.5 Pro, GPT 5.4 Mini/Nano, GPT 5.3 Codex
 - And more...
 
 Get your API key at: https://opencode.ai/auth

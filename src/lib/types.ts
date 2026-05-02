@@ -28,15 +28,6 @@ export interface CustomModel {
 export const OPENROUTER_MODELS: Model[] = [
   // Free models
   {
-    id: "xiaomi/mimo-v2-flash:free",
-    name: "MiMo V2 Flash",
-    description: "Free Xiaomi model, great for coding tasks",
-    category: "fast",
-    provider: "openrouter",
-    contextLength: 262000,
-    free: true,
-  },
-  {
     id: "minimax/minimax-m2.5:free",
     name: "MiniMax M2.5 Free",
     description: "Free MiniMax model for trying out open-source generation",
@@ -46,6 +37,22 @@ export const OPENROUTER_MODELS: Model[] = [
     free: true,
   },
   // Fast models
+  {
+    id: "xiaomi/mimo-v2.5",
+    name: "MiMo V2.5",
+    description: "Xiaomi's latest long-context MiMo model",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1048576,
+  },
+  {
+    id: "xiaomi/mimo-v2.5-pro",
+    name: "MiMo V2.5 Pro",
+    description: "Xiaomi's latest pro MiMo model for agentic coding",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 1048576,
+  },
   {
     id: "deepseek/deepseek-v4-flash",
     name: "DeepSeek V4 Flash",
@@ -135,6 +142,14 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     contextLength: 1048576,
     free: true,
+  },
+  {
+    id: "mimo-v2.5",
+    name: "MiMo V2.5",
+    description: "Xiaomi's latest long-context MiMo model",
+    category: "fast",
+    provider: "opencode-zen",
+    contextLength: 1048576,
   },
   {
     id: "gpt-5-nano",
@@ -273,6 +288,14 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     id: "deepseek-v4-pro",
     name: "DeepSeek V4 Pro",
     description: "DeepSeek's latest high-context open-source model",
+    category: "smart",
+    provider: "opencode-zen",
+    contextLength: 1048576,
+  },
+  {
+    id: "mimo-v2.5-pro",
+    name: "MiMo V2.5 Pro",
+    description: "Xiaomi's latest pro MiMo model for agentic coding",
     category: "smart",
     provider: "opencode-zen",
     contextLength: 1048576,

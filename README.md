@@ -192,6 +192,7 @@ OpenCode Zen provides curated models optimized for coding tasks, including **fre
 - Kimi K2.6, Kimi K2 Thinking
 - DeepSeek V4 Pro, DeepSeek V4 Flash
 - GLM 5.1
+- MiMo V2.5, MiMo V2.5 Pro
 - MiniMax M2.7
 - Gemini 3 Pro, Gemini 3 Flash
 - GPT 5.2, GPT 5.2 Codex, GPT 5.1 series
@@ -205,11 +206,11 @@ Access to a wide variety of models from different providers.
 
 **Free Models:**
 
-- MiMo V2 Flash
 - MiniMax M2.5 Free
 
 **Premium Models:**
 
+- MiMo V2.5, MiMo V2.5 Pro
 - Kimi K2.6, Kimi K2 Thinking
 - DeepSeek V4 Pro, DeepSeek V4 Flash
 - GLM 5.1, GLM 5 Turbo

@@ -3,6 +3,55 @@ title: Changelog
 description: Release notes and version history for Magic Shell
 ---
 
+## v0.2.20 - Thinking Controls and Zen Free Models
+
+**Released:** May 1, 2026
+
+### What's New
+
+- Added `--thinking <level>` and `thinkingLevel` config support for `off`, `low`, `medium`, and `high`
+- Added provider-specific reasoning controls for supported OpenRouter, OpenCode Zen, gateway, and custom models
+- Updated OpenCode Zen free models, including `minimax-m2.5-free`, `ling-2.6-flash-free`, `hy3-preview-free`, `nemotron-3-super-free`, `trinity-large-preview-free`, `big-pickle`, and `gpt-5-nano`
+
+### Improvements
+
+- Disabled custom thinking parameters when the selected model or provider does not support them
+- Updated default model references to `minimax-m2.5-free`
+- Documented thinking controls in CLI options and config reference docs
+
+---
+
+## v0.2.19 - AI Gateway Providers
+
+**Released:** May 1, 2026
+
+### What's New
+
+- Added Vercel AI Gateway, Cloudflare AI Gateway, and Cloudflare Workers AI as first-class providers
+- Added provider setup, provider switching, model listing, and API-key handling for the new gateway providers
+- Added gateway environment variable support for `AI_GATEWAY_API_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_AI_GATEWAY_API_KEY`
+
+### Improvements
+
+- Refreshed built-in model registries with current OpenCode Zen and OpenRouter model IDs
+- Added latest OpenAI and Anthropic aliases/models across OpenRouter and Vercel AI Gateway
+- Added provider display-name and provider-model helpers so model selection is scoped to the active provider
+
+---
+
+## v0.2.18 - Model Registry Refresh
+
+**Released:** May 1, 2026
+
+### Improvements
+
+- Added latest MiMo V2.5 and MiMo V2.5 Pro entries for OpenCode Zen
+- Added latest Xiaomi MiMo V2.5 and MiMo V2.5 Pro entries for OpenRouter
+- Removed the older OpenRouter MiMo V2 Flash free entry from docs and model listings
+- Updated runtime dependencies for the published CLI package
+
+---
+
 ## v0.2.17 - Dependency Maintenance
 
 **Released:** April 2, 2026
@@ -68,6 +117,9 @@ Magic Shell transforms natural language into terminal commands with AI-powered t
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.2.20 | May 1, 2026 | Thinking controls and Zen free models |
+| v0.2.19 | May 1, 2026 | AI Gateway providers |
+| v0.2.18 | May 1, 2026 | Model registry refresh |
 | v0.2.17 | Apr 2, 2026 | Dependency maintenance |
 | v0.2.15 | Jan 30, 2026 | Slash command support |
 | v0.2.14 | Jan 23, 2026 | CI/CD improvements |

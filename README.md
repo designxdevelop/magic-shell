@@ -583,6 +583,24 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Release Notes
 
+### v0.2.20 - Thinking Controls and Zen Free Models
+- Added `--thinking <level>` and `thinkingLevel` config support (`off`, `low`, `medium`, `high`)
+- Added provider-specific reasoning controls for supported OpenRouter, OpenCode Zen, gateway, and custom models
+- Updated OpenCode Zen free models and default model references to `minimax-m2.5-free`
+- Disabled custom thinking parameters when the selected model/provider does not support them
+
+### v0.2.19 - AI Gateway Providers
+- Added Vercel AI Gateway, Cloudflare AI Gateway, and Cloudflare Workers AI providers
+- Added gateway provider setup, switching, model listing, API-key handling, and environment variables
+- Refreshed OpenCode Zen and OpenRouter registries with current OpenAI, Anthropic, Kimi, DeepSeek, GLM, MiniMax, and MiMo model IDs
+- Added provider-scoped model helpers so model selection follows the active provider
+
+### v0.2.18 - Model Registry Refresh
+- Added latest MiMo V2.5 and MiMo V2.5 Pro entries for OpenCode Zen
+- Added latest Xiaomi MiMo V2.5 and MiMo V2.5 Pro entries for OpenRouter
+- Removed the older OpenRouter MiMo V2 Flash free entry from docs and model listings
+- Updated runtime dependencies for the published CLI package
+
 ### v0.2.17 - Dependency Maintenance
 - Updated published CLI dependencies to current releases
 - Fixed TUI input typing compatibility after the `@opentui/core` upgrade

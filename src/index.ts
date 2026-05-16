@@ -36,6 +36,7 @@ import { analyzeCommand } from "./lib/safety";
 import { translateToCommand, getShellInfo } from "./lib/api";
 import { getAnsiColors, getTheme, setTheme, themes, themeNames, loadTheme } from "./lib/theme";
 import { checkForUpdates, dismissUpdate, getCurrentVersion, forceCheckForUpdates } from "./lib/update-checker";
+import { formatExecutedCommand } from "./lib/format";
 
 // Load theme from config
 loadTheme();
@@ -601,6 +602,7 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
         process.exit(1);
       }
 
+      console.error(formatExecutedCommand(command, colors));
       const result = await executeCommand(command);
       process.exit(result.code);
     } else {

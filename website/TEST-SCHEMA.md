@@ -59,7 +59,7 @@ npm run preview
 **SoftwareApplication:**
 
 - ✅ Name: "Magic Shell"
-- ✅ Version: "0.2.14"
+- ✅ Version: "0.2.22"
 - ✅ Price: "0"
 - ✅ Operating systems listed
 - ✅ 10 features in featureList

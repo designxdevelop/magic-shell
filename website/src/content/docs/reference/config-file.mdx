@@ -18,10 +18,12 @@ Magic Shell stores configuration in `~/.magic-shell/config.json`.
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "minimax-m2.5-free",
+  "defaultModel": "deepseek-v4-flash-free",
   "thinkingLevel": "low",
   "safetyLevel": "moderate",
   "dryRunByDefault": false,
+  "cloudflareAccountId": "",
+  "cloudflareAiGatewayId": "default",
   "repoContext": false,
   "theme": "opencode",
   "blockedCommands": [],
@@ -40,6 +42,10 @@ The AI provider to use for translations.
 |-------|-------------|
 | `"opencode-zen"` | OpenCode Zen (default, has free models) |
 | `"openrouter"` | OpenRouter |
+| `"vercel-ai-gateway"` | Vercel AI Gateway |
+| `"cloudflare-ai-gateway"` | Cloudflare AI Gateway |
+| `"workers-ai"` | Cloudflare Workers AI |
+| `"custom"` | Custom OpenAI-compatible endpoint |
 
 ```json
 {
@@ -53,11 +59,46 @@ The model ID to use for translations.
 
 ```json
 {
-  "defaultModel": "minimax-m2.5-free"
+  "defaultModel": "deepseek-v4-flash-free"
 }
 ```
 
 Run `msh --models` to see available models for your provider.
+
+### provider API key fallbacks
+
+Provider API keys are stored in your system keychain when secure storage is available. If
+keychain storage is unavailable, Magic Shell can use these config fields as fallbacks:
+
+| Field | Provider |
+|-------|----------|
+| `opencodeZenApiKey` | OpenCode Zen |
+| `openrouterApiKey` | OpenRouter |
+| `vercelAiGatewayApiKey` | Vercel AI Gateway |
+| `cloudflareAiGatewayApiKey` | Cloudflare AI Gateway |
+| `workersAiApiKey` | Cloudflare Workers AI |
+
+Environment variables take precedence over both keychain and config-file values.
+
+### cloudflareAccountId
+
+Cloudflare account ID used by Cloudflare AI Gateway and Workers AI.
+
+```json
+{
+  "cloudflareAccountId": "your-account-id"
+}
+```
+
+### cloudflareAiGatewayId
+
+Cloudflare AI Gateway ID. Defaults to `default`.
+
+```json
+{
+  "cloudflareAiGatewayId": "default"
+}
+```
 
 ### thinkingLevel
 
@@ -208,7 +249,7 @@ msh --remove-model <id>  # Remove a custom model
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "minimax-m2.5-free",
+  "defaultModel": "deepseek-v4-flash-free",
   "safetyLevel": "strict",
   "dryRunByDefault": true,
   "theme": "nord"
@@ -220,7 +261,7 @@ msh --remove-model <id>  # Remove a custom model
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "minimax-m2.5-free",
+  "defaultModel": "deepseek-v4-flash-free",
   "safetyLevel": "relaxed",
   "dryRunByDefault": false,
   "theme": "dracula"

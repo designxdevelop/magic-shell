@@ -89,13 +89,13 @@ Comprehensive schema.org structured data has been implemented for the Magic Shel
 ### SoftwareApplication Schema
 
 - ✅ Free pricing ($0)
-- ✅ Version 0.2.14
+- ✅ Version 0.2.22
 - ✅ Cross-platform (macOS, Linux, Windows)
 - ✅ 10 feature highlights
 - ✅ npm download link
 - ✅ GitHub repository link
 - ✅ MIT license
-- ✅ Requirements (Node.js 18+)
+- ✅ Requirements (Bun 1.3.14+)
 
 ### HowTo Schema
 
@@ -144,7 +144,7 @@ Comprehensive schema.org structured data has been implemented for the Magic Shel
 - [ ] View page source and verify JSON-LD is present
 - [ ] Check JSON syntax is valid (no trailing commas, proper quotes)
 - [ ] Verify all URLs are fully qualified (https://mshell.dev/...)
-- [ ] Confirm version number is current (0.2.14)
+- [ ] Confirm version number is current (0.2.22)
 - [ ] Review FAQ answers for accuracy
 
 ### After Deployment
@@ -265,7 +265,7 @@ Comprehensive schema.org structured data has been implemented for the Magic Shel
 
 ```astro
 // In Schema.astro, line ~60
-"softwareVersion": "0.2.14", // ← Update this
+"softwareVersion": "0.2.22", // ← Update this
 ```
 
 ### Add FAQ Question

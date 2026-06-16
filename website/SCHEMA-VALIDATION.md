@@ -88,7 +88,7 @@ schemas.forEach((s, i) => {
 **Check for:**
 
 - [ ] All URLs are fully qualified (https://mshell.dev/...)
-- [ ] Version number matches current release (0.2.14)
+- [ ] Version number matches current release (0.2.22)
 - [ ] Feature list is accurate and up-to-date
 - [ ] FAQ answers match actual functionality
 - [ ] HowTo steps are clear and actionable

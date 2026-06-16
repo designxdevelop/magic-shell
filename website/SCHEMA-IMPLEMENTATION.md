@@ -42,11 +42,11 @@ The website implements comprehensive JSON-LD structured data to help search engi
 
 - Application category: DeveloperApplication
 - Operating systems: macOS, Linux, Windows
-- Version: 0.2.14
+- Version: 0.2.22
 - Price: Free ($0)
 - Download URL (npm)
 - Feature list (10 key features)
-- Requirements: Node.js 18.0.0+
+- Requirements: Bun 1.3.14+
 - Code repository
 - License: MIT
 - Screenshots/images

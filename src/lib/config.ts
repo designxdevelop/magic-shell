@@ -24,7 +24,7 @@ const DEFAULT_CONFIG: Config = {
   workersAiApiKey: "", // Only used as fallback if keychain unavailable
   cloudflareAccountId: "",
   cloudflareAiGatewayId: "default",
-  defaultModel: "minimax-m2.5-free", // Current free OpenCode Zen model
+  defaultModel: "deepseek-v4-flash-free", // Current free OpenCode Zen model
   thinkingLevel: "low",
   safetyLevel: "moderate",
   dryRunByDefault: false,

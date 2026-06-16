@@ -21,13 +21,13 @@ const organizationSchema = {
   "logo": `${baseUrl}/favicon.svg`,
   "description": "Transform natural language into terminal commands with AI-powered translation and built-in safety features",
   "sameAs": [
-    "https://github.com/designxdevelop/magic-shell"
+    "https://github.com/austin-thesing/magic-shell"
   ],
   "foundingDate": "2026",
   "founder": {
     "@type": "Person",
     "name": "Austin Thesing",
-    "url": "https://github.com/designxdevelop/magic-shell"
+    "url": "https://github.com/austin-thesing"
   }
 };
 
@@ -59,10 +59,10 @@ const softwareSchema = type === 'homepage' ? {
   "name": "Magic Shell",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS, Linux, Windows",
-  "description": "Open-source CLI tool that translates natural language into shell commands using AI. Supports multiple AI providers, includes a beautiful interactive TUI mode, and features comprehensive safety analysis.",
+  "description": "Open-source CLI tool that translates natural language into shell commands using AI. Supports OpenCode Zen, OpenRouter, AI gateways, Workers AI, and custom models.",
   "url": baseUrl,
   "downloadUrl": "https://www.npmjs.com/package/@austinthesing/magic-shell",
-  "softwareVersion": "0.2.14",
+  "softwareVersion": "0.2.22",
   "offers": {
     "@type": "Offer",
     "price": "0",
@@ -71,7 +71,7 @@ const softwareSchema = type === 'homepage' ? {
   "author": {
     "@type": "Person",
     "name": "Austin Thesing",
-    "url": "https://github.com/designxdevelop/magic-shell"
+    "url": "https://github.com/austin-thesing"
   },
   "publisher": {
     "@id": `${baseUrl}/#organization`
@@ -79,7 +79,7 @@ const softwareSchema = type === 'homepage' ? {
   "screenshot": `${baseUrl}/og-image.png`,
   "featureList": [
     "Natural language to terminal command translation",
-    "Multiple AI providers (OpenCode Zen, OpenRouter)",
+    "Multiple AI providers (OpenCode Zen, OpenRouter, AI gateways, Workers AI, custom models)",
     "Interactive TUI mode with 8 themes",
     "Command safety analysis with multi-level checks",
     "Project context awareness",
@@ -89,13 +89,13 @@ const softwareSchema = type === 'homepage' ? {
     "Command history tracking",
     "Auto-update checking"
   ],
-  "requirements": "Node.js 18.0.0 or higher",
+  "requirements": "Bun 1.3.14 or higher",
   "installUrl": `${baseUrl}/getting-started/installation/`,
   "softwareHelp": {
     "@type": "WebPage",
     "url": `${baseUrl}/getting-started/installation/`
   },
-  "codeRepository": "https://github.com/designxdevelop/magic-shell",
+  "codeRepository": "https://github.com/austin-thesing/magic-shell",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "TypeScript"
@@ -119,7 +119,7 @@ const howToSchema = type === 'homepage' ? {
   "tool": [
     {
       "@type": "HowToTool",
-      "name": "Node.js or Bun runtime"
+      "name": "Bun runtime"
     },
     {
       "@type": "HowToTool",
@@ -144,7 +144,7 @@ const howToSchema = type === 'homepage' ? {
       "@type": "HowToStep",
       "position": 2,
       "name": "Configure API Key",
-      "text": "Set up your API key for OpenCode Zen or OpenRouter to enable AI-powered command translation",
+      "text": "Set up your API key for OpenCode Zen, OpenRouter, an AI gateway, Workers AI, or a custom provider to enable AI-powered command translation",
       "itemListElement": [
         {
           "@type": "HowToDirection",
@@ -209,7 +209,7 @@ const articleSchema = type === 'article' && title ? {
   "author": {
     "@type": "Person",
     "name": "Austin Thesing",
-    "url": "https://github.com/designxdevelop/magic-shell"
+    "url": "https://github.com/austin-thesing"
   },
   "publisher": {
     "@id": `${baseUrl}/#organization`

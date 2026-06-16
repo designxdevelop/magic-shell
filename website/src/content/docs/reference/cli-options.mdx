@@ -25,7 +25,7 @@ msh [options] [query]
 | Option | Description |
 |--------|-------------|
 | `--setup` | Run the setup wizard for API key configuration |
-| `--provider <name>` | Set AI provider (`opencode-zen` or `openrouter`) |
+| `--provider <name>` | Set AI provider (`opencode-zen`, `openrouter`, `vercel-ai-gateway`, `cloudflare-ai-gateway`, or `workers-ai`) |
 | `--model <id>` | Set default model (including custom models) |
 | `--models` | List available models for current provider |
 | `--add-model` | Add custom model (LM Studio, Ollama, etc.) |
@@ -90,6 +90,15 @@ msh --provider openrouter
 
 # Switch back to OpenCode Zen
 msh --provider opencode-zen
+
+# Switch to Vercel AI Gateway
+msh --provider vercel-ai-gateway
+
+# Switch to Cloudflare AI Gateway
+msh --provider cloudflare-ai-gateway
+
+# Switch to Workers AI
+msh --provider workers-ai
 ```
 
 ### Change Model
@@ -151,6 +160,11 @@ msh --setup
 |----------|-------------|
 | `OPENCODE_ZEN_API_KEY` | API key for OpenCode Zen provider |
 | `OPENROUTER_API_KEY` | API key for OpenRouter provider |
+| `AI_GATEWAY_API_KEY` | API key for Vercel AI Gateway |
+| `CLOUDFLARE_AI_GATEWAY_API_KEY` | API key/token for Cloudflare AI Gateway |
+| `CLOUDFLARE_API_TOKEN` | API token for Workers AI |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID for Cloudflare providers |
+| `CLOUDFLARE_AI_GATEWAY_ID` | Gateway ID for Cloudflare AI Gateway |
 | `DEBUG_API=1` | Enable API debugging output |
 
 ## Commands

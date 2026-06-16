@@ -7,7 +7,7 @@ Magic Shell is an open-source CLI tool that translates plain English (or any nat
 ## Features
 
 - **Natural Language Translation**: Describe what you want to do in plain English
-- **Multiple AI Providers**: OpenCode Zen (with free models!), OpenRouter, and custom models (LM Studio, Ollama, OpenAI-compatible)
+- **Multiple AI Providers**: OpenCode Zen (with free models!), OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models (LM Studio, Ollama, OpenAI-compatible)
 - **Custom Model Support**: Add your own local or remote models with secure API key storage
 - **Project Context Aware**: Opt-in detection of package.json scripts, Makefile targets, etc.
 - **Interactive TUI Mode**: Full-featured terminal interface with themes
@@ -104,7 +104,7 @@ mshell
 | `msh --add-model`         | Add custom model (LM Studio, Ollama, etc.)  |
 | `msh --list-custom`       | List custom models                          |
 | `msh --remove-model <id>` | Remove custom model                         |
-| `msh --provider <name>`   | Set provider (opencode-zen or openrouter)   |
+| `msh --provider <name>`   | Set provider (OpenCode Zen, OpenRouter, gateways, Workers AI, or custom)   |
 | `msh --thinking <level>`  | Set thinking level (off, low, medium, high) |
 | `msh --themes`            | List available themes                       |
 | `msh --theme <name>`      | Set color theme                             |
@@ -185,23 +185,23 @@ OpenCode Zen provides curated models optimized for coding tasks, including **fre
 
 **Free Models:**
 
-- `minimax-m2.5-free` - MiniMax's free model (default)
-- `ling-2.6-flash-free` - Ling's free flash model
-- `hy3-preview-free` - Hy3 preview model
-- `nemotron-3-super-free` - NVIDIA Nemotron free trial model
-- `trinity-large-preview-free` - Trinity large preview model
+- `deepseek-v4-flash-free` - DeepSeek's free fast open-source model (default)
+- `mimo-v2.5-free` - Xiaomi's free long-context MiMo model
+- `north-mini-code-free` - North's free coding model
+- `nemotron-3-ultra-free` - NVIDIA Nemotron free trial model
 - `big-pickle` - OpenCode stealth model
 - `gpt-5-nano` - OpenAI's free lightweight GPT model
 
 **Premium Models:**
 
-- Claude Sonnet 4.6, Claude Opus 4.7, Claude Haiku 4.5
-- Kimi K2.6, Kimi K2 Thinking
-- DeepSeek V4 Pro
-- GLM 5.1
+- Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5, Claude Fable 5
+- Kimi K2.6
+- DeepSeek V4 Pro, DeepSeek V4 Flash
+- GLM 5.2, GLM 5.1
+- Qwen3.7 Max, Qwen3.7 Plus
 - MiMo V2.5, MiMo V2.5 Pro
 - MiniMax M2.7
-- Gemini 3.1 Pro, Gemini 3 Flash
+- Gemini 3.5 Flash, Gemini 3.1 Pro, Gemini 3 Flash
 - GPT 5.5, GPT 5.5 Pro, GPT 5.4 Mini/Nano, GPT 5.3 Codex
 - And more...
 
@@ -211,17 +211,14 @@ Get your API key at: https://opencode.ai/auth
 
 Access to a wide variety of models from different providers.
 
-**Free Models:**
+**Open-source and open-weight highlights:**
 
-- MiniMax M2.5 Free
-
-**Premium Models:**
-
-- MiMo V2.5, MiMo V2.5 Pro
-- Kimi K2.6, Kimi K2 Thinking
+- Kimi K2.7 Code, Kimi K2.6
 - DeepSeek V4 Pro, DeepSeek V4 Flash
-- GLM 5.1, GLM 5 Turbo
-- MiniMax M2.7
+- GLM 5.2, GLM 5.1, GLM 5 Turbo
+- Qwen3.7 Max, Qwen3.7 Plus
+- MiniMax M3, MiniMax M2.7
+- MiMo V2.5, MiMo V2.5 Pro
 - And many more...
 
 Get your API key at: https://openrouter.ai/keys
@@ -303,7 +300,7 @@ Configuration is stored in `~/.magic-shell/config.json`.
 ```json
 {
   "provider": "opencode-zen",
-  "defaultModel": "minimax-m2.5-free",
+  "defaultModel": "deepseek-v4-flash-free",
   "thinkingLevel": "low",
   "safetyLevel": "moderate",
   "dryRunByDefault": false,
@@ -326,11 +323,16 @@ Configuration is stored in `~/.magic-shell/config.json`.
 
 ### Environment Variables
 
-| Variable               | Description                   |
-| ---------------------- | ----------------------------- |
-| `OPENCODE_ZEN_API_KEY` | API key for OpenCode Zen      |
-| `OPENROUTER_API_KEY`   | API key for OpenRouter        |
-| `DEBUG_API=1`          | Enable API response debugging |
+| Variable                         | Description                         |
+| -------------------------------- | ----------------------------------- |
+| `OPENCODE_ZEN_API_KEY`           | API key for OpenCode Zen            |
+| `OPENROUTER_API_KEY`             | API key for OpenRouter              |
+| `AI_GATEWAY_API_KEY`             | API key for Vercel AI Gateway       |
+| `CLOUDFLARE_AI_GATEWAY_API_KEY`  | API key/token for Cloudflare Gateway |
+| `CLOUDFLARE_API_TOKEN`           | API token for Workers AI            |
+| `CLOUDFLARE_ACCOUNT_ID`          | Account ID for Cloudflare providers |
+| `CLOUDFLARE_AI_GATEWAY_ID`       | Gateway ID for Cloudflare Gateway   |
+| `DEBUG_API=1`                    | Enable API response debugging       |
 
 ## Themes
 
@@ -582,6 +584,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 MIT License - see [LICENSE](LICENSE) for details.
 
 ## Release Notes
+
+### v0.2.22 - Model Catalog and Release Prep
+
+- Refreshed OpenCode Zen and OpenRouter model registries with current June 2026 open-source/open-weight entries
+- Updated the default free Zen model to `deepseek-v4-flash-free`
+- Added Zen routing support for Qwen models on the Messages endpoint
+- Updated release docs and website provider surfaces for the refreshed provider/model set
 
 ### v0.2.20 - Thinking Controls and Zen Free Models
 - Added `--thinking <level>` and `thinkingLevel` config support (`off`, `low`, `medium`, `high`)

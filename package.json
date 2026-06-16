@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "bun run src/index.ts",
     "dev:tui": "bun run src/cli.ts",
-    "build": "bun build src/index.ts src/cli.ts src/tui.ts --outdir dist --target node --external '@opentui/core-*'",
+    "build": "bun build src/index.ts src/cli.ts src/tui.ts --outdir dist --target node --external \"`@opentui/core-`*\"",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "bun run build"
   },

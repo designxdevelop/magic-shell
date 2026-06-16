@@ -5,31 +5,18 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText, type LanguageModel } from "ai";
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
 
-import type { CommandHistory, Model, Config, CustomModel, Provider, ThinkingLevel } from "./types";
+import type { CommandHistory, Model, Config, CustomModel, Provider, ThinkingLevel, ZenApiType } from "./types";
 import { isCustomModel } from "./types";
 import { loadConfig } from "./config";
 import { detectShell, getShellSyntaxHints, getPlatformPaths, type ShellInfo } from "./shell";
 import { detectRepoContext, formatRepoContext } from "./repo-context";
 
-// Determine API type based on model ID for Zen
 // Reference: https://opencode.ai/docs/zen/
-type ZenApiType = "openai-responses" | "anthropic" | "openai-compatible" | "google";
-
-function getZenApiType(modelId: string): ZenApiType {
-  // OpenAI Responses API models (GPT models)
-  if (modelId.startsWith("gpt-")) {
-    return "openai-responses";
+function getZenApiType(model: Model): ZenApiType {
+  if (!model.zenApiType) {
+    throw new Error(`OpenCode Zen model ${model.id} is missing API routing metadata.`);
   }
-  // Anthropic models use the Messages API
-  if (modelId.startsWith("claude-")) {
-    return "anthropic";
-  }
-  // Google models
-  if (modelId.startsWith("gemini-")) {
-    return "google";
-  }
-  // OpenAI-compatible (Kimi, DeepSeek, GLM, Grok, etc.)
-  return "openai-compatible";
+  return model.zenApiType;
 }
 
 const ZEN_BASE_URL = "https://opencode.ai/zen/v1";
@@ -571,7 +558,7 @@ export async function translateToCommand(apiKey: string, model: Model | CustomMo
     rawCommand = await callGatewayProvider(model.provider, apiKey, model.id, systemPrompt, userInput, thinkingLevel);
   } else {
     // OpenCode Zen - determine API type
-    const apiType = getZenApiType(model.id);
+    const apiType = getZenApiType(model);
     switch (apiType) {
       case "openai-responses":
         rawCommand = await callZenOpenAIResponses(apiKey, model.id, systemPrompt, userInput, thinkingLevel);

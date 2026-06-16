@@ -586,6 +586,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Release Notes
 
 ### v0.2.22 - Model Catalog and Release Prep
+
 - Refreshed OpenCode Zen and OpenRouter model registries with current June 2026 open-source/open-weight entries
 - Updated the default free Zen model to `deepseek-v4-flash-free`
 - Added Zen routing support for Qwen models on the Messages endpoint

@@ -14,15 +14,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "0.38.4",
-    "@fontsource/geist-sans": "5.2.5",
-    "@fontsource/jetbrains-mono": "5.2.8",
-    "astro": "6.2.1",
-    "sharp": "0.34.5"
+    "@astrojs/starlight": "^0.40.0",
+    "@fontsource/geist-sans": "^5.2.5",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "astro": "^6.4.7",
+    "sharp": "^0.35.1"
   },
   "devDependencies": {
-    "playwright": "1.59.1",
-    "puppeteer": "24.42.0",
-    "wrangler": "4.87.0"
+    "playwright": "^1.61.0",
+    "puppeteer": "^25.1.0",
+    "wrangler": "^4.101.0"
   }
 }

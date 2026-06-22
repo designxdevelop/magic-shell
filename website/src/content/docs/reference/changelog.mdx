@@ -3,6 +3,30 @@ title: Changelog
 description: Release notes and version history for Magic Shell
 ---
 
+## v0.2.23 - Docs Theme, Provider Cards, and Model Catalog
+
+**Released:** June 22, 2026
+
+### What's New
+
+- **Slimmed model registry**: Reduced the built-in model list to a curated 6-8 per provider — the latest available versions spanning free, lower-cost, and premium across fast, smart, and reasoning categories. Removes 30+ stale entries that had drifted from upstream offerings
+- **Free model on every major provider**: OpenCode Zen ships `deepseek-v4-flash-free` and OpenRouter now ships `deepseek/deepseek-v4-flash:free` — both free, so users can try Magic Shell without a paid API key on either provider
+- **Model catalog page**: New `/reference/models/` page lists every supported model across OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, and Workers AI — generated from `src/lib/models.ts` at build time, so the docs can't drift from the CLI
+- **Filterable catalog**: Provider, category, and cost filters on the catalog page; cost legend reuses the existing Free / Lower-cost / Premium vocabulary
+- **Provider setup cards**: Replaced the cramped six-tab "Get an API Key" block on the Configuration page with an accessible card grid using native `<details>`/`<summary>` — works without JS, keyboard-operable, and multiple providers can be expanded at once
+
+### Improvements
+
+- **Theme switcher fixed**: Light and dark palettes now live under explicit `[data-theme]` selectors, so toggling the Starlight theme switcher actually changes colors. Light mode ships a warm off-white palette tuned to the same orange accent
+- **Aside and blockquote readability**: Beefed up callout borders to 4px with rounded corners; blockquotes now have a tinted background and 3px bar in both modes
+- **Providers page cleanup**: `features/providers.mdx` no longer carries hand-maintained per-provider model tables (which had drifted from source); it now links to the generated catalog. The curated "Model Equivalents Across Providers" table is retained
+
+### Fixes
+
+- Corrected `gpt-5-nano` free-flag on OpenCode Zen — it is a paid lower-cost model ($0.05/$0.40 per 1M tokens), not free. The only true free Zen models are `deepseek-v4-flash-free`, `mimo-v2.5-free`, `north-mini-code-free`, `nemotron-3-ultra-free`, and `big-pickle`
+
+---
+
 ## v0.2.22 - Model Catalog and Release Prep
 
 **Released:** June 16, 2026

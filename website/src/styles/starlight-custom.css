@@ -1,6 +1,11 @@
 /**
  * Starlight Theme Customization
- * Matches the Magic Shell "Terminal Alchemy" design system
+ * Matches the Magic Shell "Terminal Alchemy" design system.
+ *
+ * Theme-dependent values live in [data-theme="dark"] / [data-theme="light"]
+ * selectors only. The bare :root holds values that are mode-neutral
+ * (typography, radii, fonts). Override the bare :root with a color and the
+ * Starlight theme switcher will appear to do nothing — see AGENTS.md.
  */
 
 @import "@fontsource/jetbrains-mono/400.css";
@@ -11,20 +16,6 @@
 @import "@fontsource/geist-sans/600.css";
 
 :root {
-  /* Override Starlight colors with Magic Shell palette */
-  --sl-color-accent-low: #1a1510;
-  --sl-color-accent: #fab283;
-  --sl-color-accent-high: #fcd4b8;
-  
-  --sl-color-white: #eeeeee;
-  --sl-color-gray-1: #b0b0b0;
-  --sl-color-gray-2: #808080;
-  --sl-color-gray-3: #505050;
-  --sl-color-gray-4: #333333;
-  --sl-color-gray-5: #252525;
-  --sl-color-gray-6: #161616;
-  --sl-color-black: #050505;
-
   /* Typography */
   --sl-font: "Geist Sans", "Inter", system-ui, -apple-system, sans-serif;
   --sl-font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
@@ -41,16 +32,163 @@
 
   /* Border radius */
   --sl-border-radius: 8px;
+
+  /* Brand accent hue (Starlight already defines --sl-hue-orange: 41) */
+  --ms-accent-orange: #fab283;
 }
 
-/* Dark mode specific adjustments */
+/* ---------------------------------------------------------------------------
+ * Dark theme — "Terminal Alchemy" dark palette
+ * ------------------------------------------------------------------------- */
 :root[data-theme="dark"] {
-  --sl-color-bg: #050505;
-  --sl-color-bg-nav: #0a0a0a;
-  --sl-color-bg-sidebar: #0a0a0a;
-  --sl-color-hairline-light: #252525;
-  --sl-color-hairline: #333333;
+  --ms-color-bg: #050505;
+  --ms-color-bg-nav: #0a0a0a;
+  --ms-color-bg-sidebar: #0a0a0a;
+  --ms-color-bg-elevated: #161616;
+  --ms-color-bg-inline-code: #161616;
+  --ms-color-bg-search: #0a0a0a;
+  --ms-color-border-subtle: #252525;
+  --ms-color-border-default: #333333;
+  --ms-color-border-active: #484848;
+  --ms-color-accent-text: var(--ms-accent-orange);
+
+  /* Override Starlight tokens with the Magic Shell palette */
+  --sl-color-accent-low: #1a1510;
+  --sl-color-accent: var(--ms-accent-orange);
+  --sl-color-accent-high: #fcd4b8;
+
+  --sl-color-white: #eeeeee;
+  --sl-color-gray-1: #b0b0b0;
+  --sl-color-gray-2: #808080;
+  --sl-color-gray-3: #505050;
+  --sl-color-gray-4: #333333;
+  --sl-color-gray-5: #252525;
+  --sl-color-gray-6: #161616;
+  --sl-color-gray-7: #0a0a0a;
+  --sl-color-black: #050505;
+
+  --sl-color-text: var(--sl-color-gray-1);
+  --sl-color-text-accent: var(--ms-accent-orange);
+  --sl-color-text-invert: var(--sl-color-black);
+
+  --sl-color-bg: var(--sl-color-black);
+  --sl-color-bg-nav: var(--ms-color-bg-nav);
+  --sl-color-bg-sidebar: var(--ms-color-bg-sidebar);
+  --sl-color-bg-inline-code: var(--ms-color-bg-inline-code);
+  --sl-color-bg-accent: var(--sl-color-accent);
+
+  --sl-color-hairline-light: var(--ms-color-border-subtle);
+  --sl-color-hairline: var(--ms-color-border-default);
+  --sl-color-hairline-shade: var(--sl-color-bg);
+
+  /* Sidebar */
+  --ms-sidebar-active-bg: var(--sl-color-accent-low);
+  --ms-sidebar-active-fg: var(--sl-color-accent);
+
+  /* Code blocks */
+  --ms-code-bg: #0a0a0a;
+  --ms-code-border: var(--ms-color-border-subtle);
+  --ms-inline-code-fg: var(--ms-accent-orange);
+
+  /* Header */
+  --ms-header-bg: rgba(5, 5, 5, 0.8);
+  --ms-header-border: var(--ms-color-border-subtle);
+
+  /* Search */
+  --ms-search-bg: var(--ms-color-bg-search);
+  --ms-search-border: var(--ms-color-border-default);
+  --ms-search-focus-shadow: rgba(250, 178, 131, 0.15);
+
+  /* Tables */
+  --ms-table-header-bg: #111111;
+
+  /* Links (markdown body) */
+  --ms-link-fg: #5c9cf5;
+  --ms-link-hover-fg: var(--ms-accent-orange);
+
+  /* Scrollbar */
+  --ms-scrollbar-track: var(--sl-color-bg);
+  --ms-scrollbar-thumb: #333333;
+  --ms-scrollbar-thumb-hover: #484848;
+
+  /* Selection */
+  --ms-selection-bg: var(--ms-accent-orange);
+  --ms-selection-fg: #050505;
 }
+
+/* ---------------------------------------------------------------------------
+ * Light theme — warm off-white, same orange accent
+ * ------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  --ms-color-bg: #fbfaf8;
+  --ms-color-bg-nav: #ffffff;
+  --ms-color-bg-sidebar: #f5f3ef;
+  --ms-color-bg-elevated: #f0ede8;
+  --ms-color-bg-inline-code: #f0ede8;
+  --ms-color-bg-search: #ffffff;
+  --ms-color-border-subtle: #e8e4dc;
+  --ms-color-border-default: #d8d3c9;
+  --ms-color-border-active: #b8b1a5;
+  --ms-color-accent-text: #a86a3c;
+
+  --sl-color-accent-low: #fef3e6;
+  --sl-color-accent: #c48a66;
+  --sl-color-accent-high: #a86a3c;
+
+  --sl-color-white: #1a1714;
+  --sl-color-gray-1: #2a2722;
+  --sl-color-gray-2: #4a463f;
+  --sl-color-gray-3: #6b665e;
+  --sl-color-gray-4: #97918a;
+  --sl-color-gray-5: #c9c3ba;
+  --sl-color-gray-6: #ece8e0;
+  --sl-color-gray-7: #f6f3ee;
+  --sl-color-black: #ffffff;
+
+  --sl-color-text: var(--sl-color-gray-2);
+  --sl-color-text-accent: var(--ms-color-accent-text);
+  --sl-color-text-invert: var(--sl-color-black);
+
+  --sl-color-bg: var(--ms-color-bg);
+  --sl-color-bg-nav: var(--ms-color-bg-nav);
+  --sl-color-bg-sidebar: var(--ms-color-bg-sidebar);
+  --sl-color-bg-inline-code: var(--ms-color-bg-inline-code);
+  --sl-color-bg-accent: var(--sl-color-accent);
+
+  --sl-color-hairline-light: var(--ms-color-border-subtle);
+  --sl-color-hairline: var(--ms-color-border-default);
+  --sl-color-hairline-shade: var(--ms-color-bg);
+
+  --ms-sidebar-active-bg: var(--sl-color-accent-low);
+  --ms-sidebar-active-fg: var(--ms-color-accent-text);
+
+  --ms-code-bg: #f7f5f1;
+  --ms-code-border: var(--ms-color-border-subtle);
+  --ms-inline-code-fg: var(--ms-color-accent-text);
+
+  --ms-header-bg: rgba(255, 255, 255, 0.78);
+  --ms-header-border: var(--ms-color-border-subtle);
+
+  --ms-search-bg: var(--ms-color-bg-search);
+  --ms-search-border: var(--ms-color-border-default);
+  --ms-search-focus-shadow: rgba(168, 106, 60, 0.18);
+
+  --ms-table-header-bg: #f0ede8;
+
+  --ms-link-fg: #2563eb;
+  --ms-link-hover-fg: var(--ms-color-accent-text);
+
+  --ms-scrollbar-track: var(--sl-color-bg);
+  --ms-scrollbar-thumb: #c9c3ba;
+  --ms-scrollbar-thumb-hover: #a39c8f;
+
+  --ms-selection-bg: var(--ms-accent-orange);
+  --ms-selection-fg: #1a1714;
+}
+
+/* ---------------------------------------------------------------------------
+ * Component styles — all reference the theme-aware tokens above
+ * ------------------------------------------------------------------------- */
 
 /* Sidebar styling */
 .sidebar-content {
@@ -63,20 +201,20 @@ nav.sidebar a {
 }
 
 nav.sidebar a[aria-current="page"] {
-  background: var(--sl-color-accent-low);
-  color: var(--sl-color-accent);
+  background: var(--ms-sidebar-active-bg);
+  color: var(--ms-sidebar-active-fg);
 }
 
 /* Code blocks */
 .expressive-code {
-  --ec-codeBg: #0a0a0a;
+  --ec-codeBg: var(--ms-code-bg);
   --ec-codeFont: var(--sl-font-mono);
   --ec-codeFontSize: 0.875rem;
   --ec-uiBorderRadius: 8px;
 }
 
 .expressive-code pre {
-  border: 1px solid #252525;
+  border: 1px solid var(--ms-code-border);
 }
 
 /* Inline code */
@@ -84,9 +222,9 @@ nav.sidebar a[aria-current="page"] {
   font-family: var(--sl-font-mono);
   font-size: 0.9em;
   padding: 0.15em 0.4em;
-  background: #161616;
+  background: var(--ms-color-bg-inline-code);
   border-radius: 4px;
-  color: #fab283;
+  color: var(--ms-inline-code-fg);
 }
 
 /* Headings */
@@ -115,12 +253,12 @@ nav.sidebar a[aria-current="page"] {
 
 /* Links */
 .sl-markdown-content a {
-  color: #5c9cf5;
+  color: var(--ms-link-fg);
   text-decoration: none;
 }
 
 .sl-markdown-content a:hover {
-  color: #fab283;
+  color: var(--ms-link-hover-fg);
   text-decoration: underline;
 }
 
@@ -132,7 +270,7 @@ nav.sidebar a[aria-current="page"] {
 }
 
 .sl-markdown-content th {
-  background: #111111;
+  background: var(--ms-table-header-bg);
   font-family: var(--sl-font-mono);
   font-size: var(--sl-text-sm);
 }
@@ -141,37 +279,33 @@ nav.sidebar a[aria-current="page"] {
   border-color: var(--sl-color-hairline-light);
 }
 
-/* Callouts/Asides */
+/* Blockquotes — beef up the default hairline for readability in both modes */
+.sl-markdown-content blockquote:not(:where(.not-content *)) {
+  border-inline-start: 3px solid var(--sl-color-hairline);
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--sl-color-text);
+  background: color-mix(in srgb, var(--sl-color-hairline-light) 50%, transparent);
+  border-radius: 0 var(--sl-border-radius) var(--sl-border-radius) 0;
+}
+
+/* Callouts/Asides — keep Starlight's per-variant colors (they theme-adapt),
+   just round the corners and add a more prominent left bar. */
 .starlight-aside {
   border-radius: var(--sl-border-radius);
-  border-left-width: 3px;
-}
-
-.starlight-aside--tip {
-  --sl-color-asides-text-accent: #7fd88f;
-  border-color: #7fd88f;
-}
-
-.starlight-aside--caution {
-  --sl-color-asides-text-accent: #f5a742;
-  border-color: #f5a742;
-}
-
-.starlight-aside--danger {
-  --sl-color-asides-text-accent: #e06c75;
-  border-color: #e06c75;
+  border-inline-start-width: 4px;
+  padding-block: 1rem;
 }
 
 /* Search */
 .search-input {
   font-family: var(--sl-font-mono);
-  background: #0a0a0a;
-  border: 1px solid #333333;
+  background: var(--ms-search-bg);
+  border: 1px solid var(--ms-search-border);
 }
 
 .search-input:focus {
-  border-color: #fab283;
-  box-shadow: 0 0 0 2px rgba(250, 178, 131, 0.15);
+  border-color: var(--ms-accent-text, var(--ms-accent-orange));
+  box-shadow: 0 0 0 2px var(--ms-search-focus-shadow);
 }
 
 /* Page navigation */
@@ -182,15 +316,15 @@ nav.sidebar a[aria-current="page"] {
 }
 
 .pagination-links a:hover {
-  border-color: #fab283;
-  background: #111111;
+  border-color: var(--ms-color-accent-text, var(--ms-accent-orange));
+  background: var(--ms-color-bg-elevated);
 }
 
 /* Header */
 header.header {
-  background: rgba(5, 5, 5, 0.8);
+  background: var(--ms-header-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid #252525;
+  border-bottom: 1px solid var(--ms-header-border);
 }
 
 /* Mobile menu */
@@ -207,20 +341,20 @@ header.header {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: var(--ms-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: var(--ms-scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #484848;
+  background: var(--ms-scrollbar-thumb-hover);
 }
 
 /* Selection */
 ::selection {
-  background: #fab283;
-  color: #050505;
+  background: var(--ms-selection-bg);
+  color: var(--ms-selection-fg);
 }

@@ -3,7 +3,8 @@ title: Configuration
 description: Set up your API key and customize Magic Shell settings.
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import ProviderSetup from '../../../components/ProviderSetup.astro';
 
 ## API Key Setup
 
@@ -20,67 +21,13 @@ This will guide you through:
 
 ### Get an API Key
 
-<Tabs>
-  <TabItem label="OpenCode Zen">
-    OpenCode Zen offers curated models optimized for coding, including **free models**.
+Each provider needs its own key. The cards below list the steps; click to expand any provider for side-by-side comparison.
 
-    1. Visit [opencode.ai/auth](https://opencode.ai/auth)
-    2. Create an account or sign in
-    3. Copy your API key
-  </TabItem>
-  <TabItem label="OpenRouter">
-    OpenRouter provides access to a wide variety of models from different providers.
+<ProviderSetup />
 
-    1. Visit [openrouter.ai/keys](https://openrouter.ai/keys)
-    2. Create an account or sign in
-    3. Generate a new API key
-  </TabItem>
-  <TabItem label="Vercel AI Gateway">
-    Vercel AI Gateway routes requests to multiple model providers through a single Vercel-managed endpoint.
-
-    1. Visit your [Vercel dashboard](https://vercel.com/dashboard)
-    2. Open the AI Gateway settings and create a token
-  </TabItem>
-  <TabItem label="Cloudflare AI Gateway">
-    Cloudflare AI Gateway routes requests to upstream providers through Cloudflare with caching, rate limiting, and observability.
-
-    1. Visit [dash.cloudflare.com](https://dash.cloudflare.com)
-    2. Note your **Account ID** and create an AI Gateway (note the **Gateway ID**, defaults to `default`)
-    3. Create an API token with AI Gateway permissions
-  </TabItem>
-  <TabItem label="Cloudflare Workers AI">
-    Workers AI runs open models directly on Cloudflare's network.
-
-    1. Visit [dash.cloudflare.com](https://dash.cloudflare.com)
-    2. Note your **Account ID**
-    3. Create an API token with Workers AI permissions
-  </TabItem>
-  <TabItem label="Custom">
-    Use any OpenAI-compatible endpoint (LM Studio, Ollama, self-hosted APIs). No API key needed for local setups; run `msh --add-model` to configure. See [AI Providers](/features/providers/) for details.
-  </TabItem>
-</Tabs>
-
-### Environment Variables
-
-You can also set your API key via environment variables:
-
-```bash
-# OpenCode Zen
-export OPENCODE_ZEN_API_KEY="your-key-here"
-
-# OpenRouter
-export OPENROUTER_API_KEY="your-key-here"
-
-# Vercel AI Gateway
-export AI_GATEWAY_API_KEY="your-key-here"
-
-# Cloudflare providers
-export CLOUDFLARE_API_TOKEN="your-token"
-export CLOUDFLARE_ACCOUNT_ID="your-account-id"
-export CLOUDFLARE_AI_GATEWAY_API_KEY="your-gateway-token"
-```
-
-Add these to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) for persistence.
+<Aside type="note">
+  Keys stored in the system keychain (via `msh --setup`) take precedence over environment variables. See <a href="/features/providers/#environment-variables">AI Providers → Environment Variables</a> for the full list.
+</Aside>
 
 ## Custom Models
 

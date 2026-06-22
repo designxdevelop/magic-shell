@@ -3,11 +3,11 @@ title: AI Providers
 description: Choose between OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models.
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
 
 Magic Shell supports multiple AI providers, including OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models for local or remote endpoints. All providers are equal options — pick the one that fits your workflow, budget, and existing infrastructure.
 
-Each provider section below lists a curated set of recent, recommended models with a cost indicator:
+The full per-provider model catalog — names, IDs, categories, cost, and context length — is generated from `src/lib/models.ts` so it can't drift from the CLI. See [Models →](/reference/models/) for the live list. Cost legend:
 
 - **Free** — no-cost model (may be time-limited)
 - **Lower-cost** — open-weight, flash, or haiku-class model
@@ -44,16 +44,9 @@ Flagship models are available on multiple providers. Use this table to find the 
 
 OpenCode Zen provides curated models optimized for coding tasks, including several **free models** (some are time-limited).
 
-| Model | Category | Cost |
-|-------|----------|------|
-| `deepseek-v4-flash-free` | Fast | Free |
-| `gpt-5-nano` | Fast | Free |
-| `claude-haiku-4-5` | Fast | Lower-cost |
-| `gemini-3.5-flash` | Fast | Lower-cost |
-| `claude-sonnet-4-6` | Smart | Premium |
-| `gpt-5.5` | Smart | Premium |
-| `claude-opus-4-8` | Reasoning | Premium |
-| `gpt-5.5-pro` | Reasoning | Premium |
+<Aside type="tip">
+  See the <a href="/reference/models/">full OpenCode Zen catalog</a> for every model ID, context length, and Zen API type.
+</Aside>
 
 ### Get an API Key
 
@@ -66,16 +59,9 @@ OpenCode Zen provides curated models optimized for coding tasks, including sever
 
 OpenRouter provides access to models from many providers through a single API, including open-weight value options not available on the other gateways.
 
-| Model | Category | Cost |
-|-------|----------|------|
-| `deepseek/deepseek-v4-flash` | Fast | Lower-cost |
-| `z-ai/glm-5-turbo` | Fast | Lower-cost |
-| `moonshotai/kimi-k2.7-code` | Smart | Lower-cost |
-| `deepseek/deepseek-v4-pro` | Smart | Lower-cost |
-| `anthropic/claude-sonnet-4.6` | Smart | Premium |
-| `openai/gpt-5.5` | Smart | Premium |
-| `anthropic/claude-opus-4.8` | Reasoning | Premium |
-| `openai/gpt-5.5-pro` | Reasoning | Premium |
+<Aside type="tip">
+  See the <a href="/reference/models/">full OpenRouter catalog</a> for every model ID and context length.
+</Aside>
 
 ### Get an API Key
 
@@ -88,12 +74,9 @@ OpenRouter provides access to models from many providers through a single API, i
 
 Vercel AI Gateway routes requests to multiple model providers through a single Vercel-managed endpoint.
 
-| Model | Category | Cost |
-|-------|----------|------|
-| `openai/gpt-5.5` | Smart | Premium |
-| `anthropic/claude-sonnet-4.6` | Smart | Premium |
-| `openai/gpt-5.5-pro` | Reasoning | Premium |
-| `anthropic/claude-opus-4.8` | Reasoning | Premium |
+<Aside type="tip">
+  See the <a href="/reference/models/">full Vercel AI Gateway catalog</a> for every model ID and context length.
+</Aside>
 
 ### Get an API Key
 
@@ -105,12 +88,9 @@ Vercel AI Gateway routes requests to multiple model providers through a single V
 
 Cloudflare AI Gateway routes requests to upstream providers (OpenAI, Anthropic, Workers AI) through Cloudflare with caching, rate limiting, and observability. Requires a Cloudflare account ID and gateway ID.
 
-| Model | Category | Cost |
-|-------|----------|------|
-| `openai/gpt-5.5` | Smart | Premium |
-| `anthropic/claude-sonnet-4-6` | Smart | Premium |
-| `anthropic/claude-opus-4-8` | Reasoning | Premium |
-| `workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Smart | Lower-cost |
+<Aside type="tip">
+  See the <a href="/reference/models/">full Cloudflare AI Gateway catalog</a> for every model ID and context length.
+</Aside>
 
 ### Get an API Key
 
@@ -128,11 +108,9 @@ Cloudflare AI Gateway routes requests to upstream providers (OpenAI, Anthropic, 
 
 Workers AI runs open models directly on Cloudflare's network — no upstream provider required. Requires a Cloudflare account ID.
 
-| Model | Category | Cost |
-|-------|----------|------|
-| `@cf/meta/llama-3.1-8b-instruct` | Fast | Lower-cost |
-| `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Smart | Lower-cost |
-| `@cf/openai/gpt-oss-120b` | Reasoning | Lower-cost |
+<Aside type="tip">
+  See the <a href="/reference/models/">full Workers AI catalog</a> for every model ID and context length.
+</Aside>
 
 ### Get an API Key
 

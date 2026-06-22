@@ -44,6 +44,7 @@ export default defineConfig({
           items: [
             { label: "CLI Options", slug: "reference/cli-options" },
             { label: "Config File", slug: "reference/config-file" },
+            { label: "Models", slug: "reference/models" },
             { label: "Keyboard Shortcuts", slug: "reference/keyboard-shortcuts" },
             { label: "Changelog", slug: "reference/changelog" },
           ],

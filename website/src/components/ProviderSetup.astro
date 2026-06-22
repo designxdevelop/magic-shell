@@ -1,0 +1,257 @@
+---
+/**
+ * Provider setup card grid.
+ *
+ * Replaces the cramped Starlight <Tabs>/<TabItem> block in
+ * configuration.mdx. Each provider is a card; clicking the summary
+ * expands an inline panel with the API-key acquisition steps. Uses native
+ * <details>/<summary> so it works without JS and is keyboard-operable.
+ */
+export interface Provider {
+  id: string
+  name: string
+  summary: string
+  envKey?: string
+  steps: string[]
+  link?: { href: string; label: string }
+}
+
+const providers: Provider[] = [
+  {
+    id: "opencode-zen",
+    name: "OpenCode Zen",
+    summary: "Curated models optimized for coding, including free models.",
+    envKey: "OPENCODE_ZEN_API_KEY",
+    steps: [
+      'Visit <a href="https://opencode.ai/auth" rel="noopener" target="_blank">opencode.ai/auth</a>',
+      "Create an account or sign in",
+      "Copy your API key",
+      "Run <code>msh --setup</code> and paste it",
+    ],
+  },
+  {
+    id: "openrouter",
+    name: "OpenRouter",
+    summary: "Wide variety of models from many providers through one API.",
+    envKey: "OPENROUTER_API_KEY",
+    steps: [
+      'Visit <a href="https://openrouter.ai/keys" rel="noopener" target="_blank">openrouter.ai/keys</a>',
+      "Create an account or sign in",
+      "Generate a new API key",
+    ],
+  },
+  {
+    id: "vercel-ai-gateway",
+    name: "Vercel AI Gateway",
+    summary: "Routes requests to multiple model providers via Vercel.",
+    envKey: "AI_GATEWAY_API_KEY",
+    steps: [
+      'Visit your <a href="https://vercel.com/dashboard" rel="noopener" target="_blank">Vercel dashboard</a>',
+      "Open the AI Gateway settings and create a token",
+    ],
+  },
+  {
+    id: "cloudflare-ai-gateway",
+    name: "Cloudflare AI Gateway",
+    summary: "Upstream routing with caching, rate limiting, observability.",
+    envKey: "CLOUDFLARE_AI_GATEWAY_API_KEY",
+    steps: [
+      'Visit <a href="https://dash.cloudflare.com" rel="noopener" target="_blank">dash.cloudflare.com</a>',
+      "Note your <strong>Account ID</strong> and create an AI Gateway (note the <strong>Gateway ID</strong>, defaults to <code>default</code>)",
+      "Create an API token with AI Gateway permissions",
+    ],
+  },
+  {
+    id: "cloudflare-workers-ai",
+    name: "Cloudflare Workers AI",
+    summary: "Run open models directly on Cloudflare's network.",
+    envKey: "CLOUDFLARE_API_TOKEN",
+    steps: [
+      'Visit <a href="https://dash.cloudflare.com" rel="noopener" target="_blank">dash.cloudflare.com</a>',
+      "Note your <strong>Account ID</strong>",
+      "Create an API token with Workers AI permissions",
+    ],
+  },
+  {
+    id: "custom",
+    name: "Custom endpoint",
+    summary: "Any OpenAI-compatible endpoint (LM Studio, Ollama, self-hosted).",
+    steps: [],
+    link: {
+      href: "/features/providers/#custom-models",
+      label: "See custom model setup →",
+    },
+  },
+]
+---
+
+<ul class="provider-grid" role="list">
+  {providers.map((p) => (
+    <li class="provider-card">
+      <div class="provider-card__head">
+        <h3 class="provider-card__name">{p.name}</h3>
+        <p class="provider-card__summary">{p.summary}</p>
+        {p.envKey && (
+          <p class="provider-card__env">
+            <span class="provider-card__env-label">Env var:</span>
+            <code>{p.envKey}</code>
+          </p>
+        )}
+      </div>
+
+      {p.steps.length > 0 ? (
+        <details class="provider-card__details">
+          <summary>
+            <span class="provider-card__chevron" aria-hidden="true">›</span>
+            Get an API key
+          </summary>
+          <ol class="provider-card__steps">
+            {p.steps.map((step) => (
+              <li set:html={step} />
+            ))}
+          </ol>
+        </details>
+      ) : p.link ? (
+        <a class="provider-card__link" href={p.link.href}>{p.link.label}</a>
+      ) : null}
+    </li>
+  ))}
+</ul>
+
+<style>
+  .provider-grid {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .provider-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--ms-color-bg-elevated, var(--sl-color-bg-inline-code, #161616));
+    border: 1px solid var(--sl-color-hairline-light, #252525);
+    border-radius: var(--sl-border-radius, 8px);
+    padding: 1rem 1.1rem;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+
+  .provider-card:hover {
+    border-color: var(--ms-color-border-active, #484848);
+  }
+
+  .provider-card__head {
+    margin-bottom: 0.75rem;
+  }
+
+  .provider-card__name {
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-lg, 1.125rem);
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+    color: var(--sl-color-white, #eee);
+  }
+
+  .provider-card__summary {
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--sl-color-text, #b0b0b0);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .provider-card__env {
+    margin: 0.5rem 0 0;
+    font-size: var(--sl-text-xs, 0.8125rem);
+    color: var(--sl-color-gray-3, #505050);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .provider-card__env-label {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+
+  .provider-card__env code {
+    font-size: 0.78rem;
+    padding: 0.1em 0.35em;
+    background: var(--ms-color-bg-inline-code, #161616);
+    border-radius: 4px;
+    color: var(--ms-inline-code-fg, #fab283);
+  }
+
+  .provider-card__details {
+    margin-top: auto;
+    border-top: 1px solid var(--sl-color-hairline-light, #252525);
+    padding-top: 0.6rem;
+  }
+
+  .provider-card__details > summary {
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--ms-color-accent-text, #fab283);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    user-select: none;
+  }
+
+  .provider-card__details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .provider-card__chevron {
+    display: inline-block;
+    transition: transform 150ms ease;
+    color: var(--ms-color-accent-text, #fab283);
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .provider-card__details[open] .provider-card__chevron {
+    transform: rotate(90deg);
+  }
+
+  .provider-card__steps {
+    margin: 0.6rem 0 0.25rem;
+    padding-left: 1.25rem;
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--sl-color-text, #b0b0b0);
+    line-height: 1.65;
+  }
+
+  .provider-card__steps li {
+    margin-bottom: 0.35rem;
+  }
+
+  .provider-card__steps code {
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 0.85em;
+    padding: 0.1em 0.3em;
+    background: var(--ms-color-bg-inline-code, #161616);
+    border-radius: 4px;
+    color: var(--ms-inline-code-fg, #fab283);
+  }
+
+  .provider-card__link {
+    margin-top: auto;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--sl-color-hairline-light, #252525);
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--ms-color-accent-text, #fab283);
+    text-decoration: none;
+  }
+
+  .provider-card__link:hover {
+    text-decoration: underline;
+  }
+</style>

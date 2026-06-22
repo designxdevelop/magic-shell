@@ -1,0 +1,22 @@
+---
+title: Models
+description: Catalog of every model Magic Shell supports across OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, and Workers AI.
+---
+
+import ModelCatalog from '../../../components/ModelCatalog.astro';
+
+Every model Magic Shell can route to, grouped by provider. The list below is generated from `src/lib/models.ts` at build time, so it always matches what the CLI ships.
+
+## Cost legend
+
+- **Free** — no-cost model (may be time-limited)
+- **Lower-cost** — open-weight, flash, or haiku-class model
+- **Premium** — flagship or high-capability model
+
+Use the filter panel to narrow by provider, category, or cost. The `msh --models` command lists only the models available for your *currently configured* provider.
+
+<ModelCatalog />
+
+:::note
+Some models ship disabled upstream (e.g., deprecated generations); those are still listed here for reference. The CLI never offers a disabled model at the picker.
+:::

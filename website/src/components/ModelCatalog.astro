@@ -1,0 +1,438 @@
+---
+/**
+ * Auto-generated model & provider catalog.
+ *
+ * Source of truth: src/lib/models.ts → website/src/data/models.json
+ * (re-run `bun run website/scripts/generate-models-data.ts` after edits).
+ */
+import modelData from "../data/models.json"
+
+interface Model {
+  id: string
+  name: string
+  description: string
+  category: "fast" | "smart" | "reasoning"
+  provider: string
+  contextLength: number
+  free: boolean
+  zenApiType?: string
+  disabled?: boolean
+  disabledReason?: string
+}
+
+interface ProviderCatalog {
+  id: string
+  displayName: string
+  models: Model[]
+}
+
+const providers = (modelData as { providers: ProviderCatalog[] }).providers
+
+function costLabel(m: Model): "Free" | "Lower-cost" | "Premium" {
+  if (m.free) return "Free"
+  if (m.category === "fast") return "Lower-cost"
+  return m.category === "reasoning" ? "Premium" : "Premium"
+}
+
+function formatContext(tokens: number): string {
+  if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(tokens % 1_000_000 === 0 ? 0 : 1)}M`
+  if (tokens >= 1000) return `${Math.round(tokens / 1000)}K`
+  return `${tokens}`
+}
+
+const categories = ["fast", "smart", "reasoning"] as const
+
+// Stable category badge colors (driven by Starlight tokens so they theme-adapt)
+const categoryClass: Record<string, string> = {
+  fast: "cat-fast",
+  smart: "cat-smart",
+  reasoning: "cat-reasoning",
+}
+---
+
+<div class="mc" data-total-models={modelData.total}>
+  <div class="mc__legend">
+    <span class="mc__legend-item"><span class="badge cost-Free">Free</span> no-cost model (may be time-limited)</span>
+    <span class="mc__legend-item"><span class="badge cost-Lower-cost">Lower-cost</span> open-weight, flash, or haiku-class</span>
+    <span class="mc__legend-item"><span class="badge cost-Premium">Premium</span> flagship or high-capability</span>
+  </div>
+
+  <details class="mc__filters" open>
+    <summary>
+      <span class="mc__chevron" aria-hidden="true">›</span>
+      Filter by provider & category
+    </summary>
+
+    <fieldset class="mc__filter-group">
+      <legend class="mc__filter-legend">Provider</legend>
+      <label class="mc__chip">
+        <input type="checkbox" name="provider" value="all" checked />
+        All
+      </label>
+      {providers.map((p, i) => (
+        <label class="mc__chip">
+          <input
+            type="checkbox"
+            name="provider"
+            value={p.id}
+            checked={i === 0}
+          />
+          {p.displayName}
+        </label>
+      ))}
+    </fieldset>
+
+    <fieldset class="mc__filter-group">
+      <legend class="mc__filter-legend">Category</legend>
+      <label class="mc__chip">
+        <input type="checkbox" name="category" value="all" checked />
+        All
+      </label>
+      {categories.map((c) => (
+        <label class="mc__chip">
+          <input type="checkbox" name="category" value={c} checked />
+          {c[0].toUpperCase() + c.slice(1)}
+        </label>
+      ))}
+    </fieldset>
+
+    <fieldset class="mc__filter-group mc__filter-group--cost">
+      <legend class="mc__filter-legend">Cost</legend>
+      <label class="mc__chip">
+        <input type="checkbox" name="cost" value="Free" checked />
+        Free only
+      </label>
+    </fieldset>
+  </details>
+
+  {providers.map((p) => (
+    <section
+      class="mc__provider"
+      data-provider={p.id}
+      aria-labelledby={`mc-${p.id}`}
+    >
+      <h3 id={`mc-${p.id}`} class="mc__provider-name">{p.displayName}</h3>
+      <p class="mc__provider-meta">
+        {p.models.length} model{p.models.length === 1 ? "" : "s"}
+      </p>
+
+      <div class="mc__table-wrap">
+        <table class="mc__table">
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">ID</th>
+              <th scope="col">Category</th>
+              <th scope="col">Cost</th>
+              <th scope="col">Context</th>
+              {p.id === "opencode-zen" && <th scope="col">Zen API</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {p.models.map((m) => (
+              <tr
+                class="mc__row"
+                data-category={m.category}
+                data-cost={costLabel(m)}
+                data-free={m.free ? "true" : "false"}
+              >
+                <td>
+                  <div class="mc__model-name">{m.name}</div>
+                  {m.description && (
+                    <div class="mc__model-desc">{m.description}</div>
+                  )}
+                </td>
+                <td><code class="mc__id">{m.id}</code></td>
+                <td>
+                  <span class={`badge cat ${categoryClass[m.category]}`}>
+                    {m.category}
+                  </span>
+                </td>
+                <td><span class={`badge cost cost-${costLabel(m).replace(/\s/g, "-")}`}>{costLabel(m)}</span></td>
+                <td class="mc__context" title={`${m.contextLength.toLocaleString()} tokens`}>
+                  {formatContext(m.contextLength)}
+                </td>
+                {p.id === "opencode-zen" && (
+                  <td>{m.zenApiType ? <code class="mc__zen">{m.zenApiType}</code> : "—"}</td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  ))}
+</div>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector(".mc")
+    if (!root) return
+
+    const providerCheckboxes = Array.from(
+      root.querySelectorAll('input[name="provider"]'),
+    )
+    const categoryCheckboxes = Array.from(
+      root.querySelectorAll('input[name="category"]'),
+    )
+    const freeOnly = root.querySelector('input[name="cost"][value="Free"]')
+
+    function selectedValues(boxes) {
+      return new Set(boxes.filter((b) => b.checked).map((b) => b.value))
+    }
+
+    function apply() {
+      const providers = selectedValues(providerCheckboxes)
+      const categories = selectedValues(categoryCheckboxes)
+      const wantFreeOnly = freeOnly?.checked ?? false
+
+      const providerAll = providers.has("all")
+      const categoryAll = categories.has("all")
+
+      root.querySelectorAll(".mc__provider").forEach((section) => {
+        const pid = section.getAttribute("data-provider")
+        const providerVisible = providerAll || providers.has(pid)
+        let anyRowVisible = false
+        section.querySelectorAll(".mc__row").forEach((row) => {
+          const cat = row.getAttribute("data-category")
+          const free = row.getAttribute("data-free") === "true"
+          const visible =
+            providerVisible &&
+            (categoryAll || categories.has(cat)) &&
+            (!wantFreeOnly || free)
+          row.hidden = !visible
+          if (visible) anyRowVisible = true
+        })
+        section.hidden = providerVisible ? false : !anyRowVisible
+        if (providerVisible && !providerAll && !anyRowVisible) {
+          section.hidden = true
+        }
+      })
+    }
+
+    function wireGroup(boxes, allValue) {
+      boxes.forEach((box) => {
+        box.addEventListener("change", () => {
+          if (box.value === allValue) {
+            if (box.checked) {
+              boxes.forEach((b) => {
+                if (b.value !== allValue) b.checked = false
+              })
+            } else {
+              box.checked = true
+            }
+          } else if (box.checked) {
+            boxes.forEach((b) => {
+              if (b.value === allValue) b.checked = false
+            })
+          } else if (boxes.every((b) => b.value === allValue || !b.checked)) {
+            boxes.forEach((b) => {
+              if (b.value === allValue) b.checked = true
+            })
+          }
+          apply()
+        })
+      })
+    }
+
+    wireGroup(providerCheckboxes, "all")
+    wireGroup(categoryCheckboxes, "all")
+    freeOnly?.addEventListener("change", apply)
+    apply()
+  })()
+</script>
+
+<style>
+  .mc { font-family: var(--sl-font, sans-serif); }
+
+  .mc__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--sl-color-text, #b0b0b0);
+  }
+
+  .mc__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.1em 0.5em;
+    border-radius: 999px;
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-xs, 0.8125rem);
+    line-height: 1.4;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+  .cat { text-transform: capitalize; }
+  .cat-fast { color: #7fd88f; background: rgba(127, 216, 143, 0.12); border-color: rgba(127, 216, 143, 0.3); }
+  .cat-smart { color: var(--ms-color-accent-text, #fab283); background: rgba(250, 178, 131, 0.12); border-color: rgba(250, 178, 131, 0.3); }
+  .cat-reasoning { color: #c089e8; background: rgba(192, 137, 232, 0.12); border-color: rgba(192, 137, 232, 0.3); }
+
+  .cost-Free { color: #7fd88f; background: rgba(127, 216, 143, 0.12); border-color: rgba(127, 216, 143, 0.3); }
+  .cost-Lower-cost { color: var(--ms-color-accent-text, #fab283); background: rgba(250, 178, 131, 0.12); border-color: rgba(250, 178, 131, 0.3); }
+  .cost-Premium { color: #e06c75; background: rgba(224, 108, 117, 0.12); border-color: rgba(224, 108, 117, 0.3); }
+
+  /* Filter panel */
+  .mc__filters {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--sl-color-hairline-light, #252525);
+    border-radius: var(--sl-border-radius, 8px);
+    padding: 0;
+    background: var(--ms-color-bg-elevated, transparent);
+  }
+
+  .mc__filters > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.75rem 1rem;
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--ms-color-accent-text, #fab283);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    user-select: none;
+  }
+  .mc__filters > summary::-webkit-details-marker { display: none; }
+
+  .mc__chevron {
+    display: inline-block;
+    transition: transform 150ms ease;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .mc__filters[open] .mc__chevron { transform: rotate(90deg); }
+
+  .mc__filter-group {
+    border: 0;
+    padding: 0 1rem 0.85rem;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.5rem;
+    align-items: center;
+  }
+
+  .mc__filter-legend {
+    padding: 0;
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-xs, 0.8125rem);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sl-color-gray-3, #505050);
+    margin-right: 0.5rem;
+  }
+
+  .mc__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--sl-color-hairline-light, #252525);
+    border-radius: 999px;
+    font-size: var(--sl-text-xs, 0.8125rem);
+    font-family: var(--sl-font-mono, monospace);
+    color: var(--sl-color-text, #b0b0b0);
+    cursor: pointer;
+    transition: border-color 150ms ease, color 150ms ease;
+  }
+  .mc__chip:hover { border-color: var(--ms-color-border-active, #484848); }
+  .mc__chip input { accent-color: var(--ms-color-accent-text, #fab283); }
+
+  .mc__filter-group--cost { display: none; }
+  @supports (selector(:has(*))) {
+    .mc__filter-group--cost { display: flex; }
+  }
+
+  /* Provider section */
+  .mc__provider {
+    margin-bottom: 2.5rem;
+    scroll-margin-top: 6rem;
+  }
+  .mc__provider-name {
+    font-family: var(--sl-font-mono, monospace);
+    font-size: var(--sl-text-2xl, 1.5rem);
+    margin: 0 0 0.25rem;
+  }
+  .mc__provider-meta {
+    font-size: var(--sl-text-sm, 0.875rem);
+    color: var(--sl-color-gray-3, #505050);
+    margin: 0 0 0.75rem;
+  }
+
+  .mc__table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--sl-color-hairline-light, #252525);
+    border-radius: var(--sl-border-radius, 8px);
+  }
+
+  .mc__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--sl-text-sm, 0.875rem);
+  }
+  .mc__table th,
+  .mc__table td {
+    text-align: start;
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--sl-color-hairline-light, #252525);
+    vertical-align: top;
+  }
+  .mc__table th {
+    background: var(--ms-table-header-bg, #111);
+    font-family: var(--sl-font-mono, monospace);
+    font-weight: 500;
+    font-size: var(--sl-text-xs, 0.8125rem);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sl-color-gray-2, #808080);
+  }
+  .mc__table tbody tr:last-child td { border-bottom: 0; }
+  .mc__table tbody tr:hover { background: var(--ms-color-bg-elevated, transparent); }
+
+  .mc__model-name { font-weight: 600; color: var(--sl-color-white, #eee); }
+  .mc__model-desc {
+    font-size: var(--sl-text-xs, 0.8125rem);
+    color: var(--sl-color-gray-3, #505050);
+    margin-top: 0.15rem;
+    max-width: 32rem;
+  }
+
+  .mc__id {
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 0.85em;
+    background: var(--ms-color-bg-inline-code, #161616);
+    color: var(--ms-inline-code-fg, #fab283);
+    border-radius: 4px;
+    padding: 0.15em 0.35em;
+    white-space: nowrap;
+  }
+
+  .mc__context {
+    font-family: var(--sl-font-mono, monospace);
+    color: var(--sl-color-gray-2, #808080);
+    white-space: nowrap;
+  }
+
+  .mc__zen {
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 0.78rem;
+    padding: 0.1em 0.3em;
+    background: var(--ms-color-bg-inline-code, #161616);
+    color: var(--ms-inline-code-fg, #fab283);
+    border-radius: 4px;
+  }
+
+  @media (max-width: 40rem) {
+    .mc__table th:nth-child(2),
+    .mc__table td:nth-child(2) { display: none; }
+  }
+</style>

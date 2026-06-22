@@ -85,11 +85,10 @@ let inputHintText: TextRenderable;
 let helpBarText: TextRenderable;
 let modelSelector: SelectRenderable | null = null;
 let providerSelector: SelectRenderable | null = null;
-let slashCommandContainer: BoxRenderable | null = null;
-let slashCommandSelector: SelectRenderable | null = null;
 let slashCommandMatches: SlashCommand[] = [];
 let slashCommandSelectedIndex = 0;
 let slashCommandSyncQueued = false;
+let slashCommandExecuting = false;
 
 // Pending command state (for the most recent assistant message awaiting confirmation)
 let pendingMessageId: string | null = null;
@@ -432,8 +431,12 @@ function createMainUI() {
       { name: "j", ctrl: true, action: "newline" },
     ],
     onSubmit: () => {
+      if (slashCommandModal && slashCommandMatches.length > 0) {
+        void executeSelectedSlashCommand();
+        return;
+      }
       const value = inputField.editBuffer.getText();
-      handleInput(value);
+      void handleInput(value);
     },
   });
   inputContainer.add(inputField);
@@ -837,30 +840,22 @@ function refreshThemeColors() {
   if (inputHintText) {
     inputHintText.content = getInputHintContent();
   }
-  if (slashCommandContainer) {
-    slashCommandContainer.borderColor = theme.colors.border;
-    slashCommandContainer.backgroundColor = theme.colors.backgroundPanel;
-  }
-  if (slashCommandSelector) {
-    slashCommandSelector.selectedBackgroundColor = theme.colors.backgroundElement;
-    slashCommandSelector.textColor = theme.colors.text;
-    slashCommandSelector.selectedTextColor = theme.colors.primary;
-    slashCommandSelector.descriptionColor = theme.colors.textMuted;
-    slashCommandSelector.selectedDescriptionColor = theme.colors.textMuted;
-  }
 }
 
 async function handleInput(value: string) {
   const input = value.trim();
   if (!input) return;
 
+  // Handle special commands (both ! and / prefixes)
+  if (input.startsWith("/") && await tryHandleSlashCommand(input)) {
+    inputField.setText("");
+    closeSlashCommandMenu();
+    return;
+  }
+
   inputField.setText("");
   closeSlashCommandMenu();
 
-  // Handle special commands (both ! and / prefixes)
-  if (input.startsWith("/") && await tryHandleSlashCommand(input)) {
-    return;
-  }
   if (input.startsWith("!")) {
     await handleSpecialCommand(input);
     return;
@@ -879,15 +874,22 @@ async function handleInput(value: string) {
   await translateAndProcess(input);
 }
 
+async function executeSelectedSlashCommand(): Promise<void> {
+  if (slashCommandExecuting || !slashCommandModal || slashCommandMatches.length === 0) return;
+
+  slashCommandExecuting = true;
+  try {
+    const selected = slashCommandMatches[Math.min(slashCommandSelectedIndex, slashCommandMatches.length - 1)];
+    inputField.setText("");
+    closeSlashCommandMenu();
+    await selected.action();
+  } finally {
+    slashCommandExecuting = false;
+  }
+}
+
 async function tryHandleSlashCommand(input: string): Promise<boolean> {
   if (!input.startsWith("/")) return false;
-
-  const slashBody = input.slice(1).trim();
-  if (!slashBody.includes(" ") && slashCommandMatches.length > 0) {
-    const selected = slashCommandMatches[Math.min(slashCommandSelectedIndex, slashCommandMatches.length - 1)];
-    await handleSpecialCommand(`/${selected.slash}`);
-    return true;
-  }
 
   await handleSpecialCommand(input);
   return true;
@@ -1486,8 +1488,21 @@ function showThemeSelector() {
   themeSelector.focus();
 }
 
-// Command palette state
-let commandPalette: SelectRenderable | null = null;
+// Modal list state (shared by command palette and slash commands)
+const MODAL_LIST_WIDTH = 55;
+const MODAL_LIST_MAX_ITEMS = 12;
+
+interface ModalListHandle {
+  containerId: string;
+  container: BoxRenderable;
+  selector: SelectRenderable;
+  updateOptions: (options: SelectOption[], selectedIndex?: number) => void;
+  setSelectedIndex: (index: number) => void;
+  close: () => void;
+}
+
+let commandPaletteModal: ModalListHandle | null = null;
+let slashCommandModal: ModalListHandle | null = null;
 let commandPaletteQuery = "";
 let chordMode: "none" | "ctrl-x" = "none";
 
@@ -1699,61 +1714,115 @@ function getSlashCommandMatches(inputText: string): SlashCommand[] {
   });
 }
 
-function ensureSlashCommandMenu(): void {
-  if (slashCommandContainer && slashCommandSelector) return;
+function openModalList(config: {
+  containerId: string;
+  selectorId: string;
+  title: string;
+  options: SelectOption[];
+  focusList?: boolean;
+  selectedIndex?: number;
+  onSelect?: (index: number, option: SelectOption) => void | Promise<void>;
+}): ModalListHandle {
+  const theme = getTheme();
+  const width = MODAL_LIST_WIDTH;
+  const termWidth = process.stdout.columns || 80;
+  const left = Math.max(2, Math.floor((termWidth - width) / 2));
+  const itemCount = Math.max(config.options.length, 1);
+  const listHeight = Math.min(itemCount + 2, MODAL_LIST_MAX_ITEMS);
+  const containerHeight = listHeight + 2;
 
-  slashCommandContainer = new BoxRenderable(renderer, {
-    id: "slash-command-container",
-    width: "100%",
+  const container = new BoxRenderable(renderer, {
+    id: config.containerId,
+    position: "absolute",
+    left,
+    top: 3,
+    width,
+    height: containerHeight,
+    backgroundColor: theme.colors.backgroundPanel,
     border: true,
-    borderColor: getTheme().colors.border,
+    borderColor: theme.colors.primary,
     borderStyle: "single",
-    backgroundColor: getTheme().colors.backgroundPanel,
-    paddingLeft: 1,
-    paddingRight: 1,
-    paddingTop: 0,
-    paddingBottom: 0,
-    marginTop: 1,
+    title: config.title,
+    titleAlignment: "center",
+    zIndex: 200,
+    padding: 1,
   });
-  inputContainer.add(slashCommandContainer);
+  renderer.root.add(container);
 
-  slashCommandSelector = new SelectRenderable(renderer, {
-    id: "slash-command-select",
+  const selector = new SelectRenderable(renderer, {
+    id: config.selectorId,
     width: "100%",
-    height: 6,
-    options: [],
+    height: listHeight,
+    options: config.options,
     backgroundColor: "transparent",
     focusedBackgroundColor: "transparent",
-    selectedBackgroundColor: getTheme().colors.backgroundElement,
-    textColor: getTheme().colors.text,
-    selectedTextColor: getTheme().colors.primary,
-    descriptionColor: getTheme().colors.textMuted,
-    selectedDescriptionColor: getTheme().colors.textMuted,
+    selectedBackgroundColor: theme.colors.backgroundElement,
+    textColor: theme.colors.text,
+    selectedTextColor: theme.colors.primary,
+    descriptionColor: theme.colors.textMuted,
+    selectedDescriptionColor: theme.colors.textMuted,
     showDescription: true,
     wrapSelection: true,
   });
-  slashCommandContainer.add(slashCommandSelector);
+  container.add(selector);
+
+  const handle: ModalListHandle = {
+    containerId: config.containerId,
+    container,
+    selector,
+    updateOptions(options, selectedIndex = 0) {
+      const count = Math.max(options.length, 1);
+      const newListHeight = Math.min(count + 2, MODAL_LIST_MAX_ITEMS);
+      selector.options = options;
+      selector.height = newListHeight;
+      container.height = newListHeight + 2;
+      selector.setSelectedIndex(Math.min(selectedIndex, Math.max(options.length - 1, 0)));
+    },
+    setSelectedIndex(index: number) {
+      selector.setSelectedIndex(index);
+    },
+    close() {
+      renderer.root.remove(config.containerId);
+      inputField?.focus();
+    },
+  };
+
+  if (config.onSelect) {
+    selector.on(SelectRenderableEvents.ITEM_SELECTED, async (index: number, option: SelectOption) => {
+      await config.onSelect?.(index, option);
+    });
+  }
+
+  const initialIndex = config.selectedIndex ?? 0;
+  if (config.focusList !== false) {
+    selector.focus();
+  } else {
+    selector.setSelectedIndex(initialIndex);
+  }
+
+  return handle;
 }
 
-function updateSlashCommandMenuOptions(): void {
-  if (!slashCommandSelector) return;
-  slashCommandSelector.options = slashCommandMatches.map((cmd) => ({
+function getSlashCommandSelectOptions(): SelectOption[] {
+  return slashCommandMatches.map((cmd) => ({
     name: `/${cmd.slash}`,
     description: cmd.description,
     value: cmd,
   }));
-  slashCommandSelector.height = Math.min(Math.max(slashCommandMatches.length, 1), 6);
-  slashCommandSelector.setSelectedIndex(slashCommandSelectedIndex);
 }
 
 function closeSlashCommandMenu(): void {
-  if (slashCommandContainer) {
-    inputContainer.remove("slash-command-container");
-    slashCommandContainer = null;
-    slashCommandSelector = null;
+  if (slashCommandModal) {
+    slashCommandModal.close();
+    slashCommandModal = null;
   }
   slashCommandMatches = [];
   slashCommandSelectedIndex = 0;
+}
+
+function updateSlashCommandModalOptions(): void {
+  if (!slashCommandModal) return;
+  slashCommandModal.updateOptions(getSlashCommandSelectOptions(), slashCommandSelectedIndex);
 }
 
 function syncSlashCommandMenu(): void {
@@ -1765,10 +1834,23 @@ function syncSlashCommandMenu(): void {
     return;
   }
 
-  ensureSlashCommandMenu();
   slashCommandMatches = matches;
   slashCommandSelectedIndex = Math.min(slashCommandSelectedIndex, slashCommandMatches.length - 1);
-  updateSlashCommandMenuOptions();
+  const options = getSlashCommandSelectOptions();
+
+  if (slashCommandModal) {
+    slashCommandModal.updateOptions(options, slashCommandSelectedIndex);
+    return;
+  }
+
+  slashCommandModal = openModalList({
+    containerId: "slash-command-modal",
+    selectorId: "slash-command-select",
+    title: "Commands",
+    options,
+    focusList: false,
+    selectedIndex: slashCommandSelectedIndex,
+  });
 }
 
 function queueSlashCommandSync(): void {
@@ -1781,61 +1863,24 @@ function queueSlashCommandSync(): void {
 }
 
 function showCommandPalette() {
-  if (commandPalette) {
+  if (commandPaletteModal) {
     return;
   }
 
   commandPaletteQuery = "";
-  const commands = getCommandPaletteOptions();
-
-  // Center horizontally: (terminal width - container width) / 2
-  const paletteWidth = 55;
-  const termWidth = process.stdout.columns || 80;
-  const paletteLeft = Math.max(2, Math.floor((termWidth - paletteWidth) / 2));
-
-  const container = new BoxRenderable(renderer, {
-    id: "command-palette-container",
-    position: "absolute",
-    left: paletteLeft,
-    top: 3,
-    width: paletteWidth,
-    height: Math.min(commands.length + 4, 16),
-    backgroundColor: "#1e293b",
-    border: true,
-    borderColor: "#60a5fa",
-    borderStyle: "single",
+  commandPaletteModal = openModalList({
+    containerId: "command-palette-container",
+    selectorId: "command-palette-select",
     title: "Commands",
-    titleAlignment: "center",
-    zIndex: 200,
-    padding: 1,
-  });
-  renderer.root.add(container);
-
-  commandPalette = new SelectRenderable(renderer, {
-    id: "command-palette-select",
-    width: "100%",
-    height: Math.min(commands.length + 2, 12),
     options: getCommandPaletteSelectOptions(),
-    backgroundColor: "transparent",
-    focusedBackgroundColor: "transparent",
-    selectedBackgroundColor: "#334155",
-    textColor: "#e2e8f0",
-    selectedTextColor: "#60a5fa",
-    descriptionColor: "#64748b",
-    selectedDescriptionColor: "#94a3b8",
-    showDescription: true,
-    wrapSelection: true,
+    focusList: true,
+    onSelect: async (_: number, option: SelectOption) => {
+      if (!option.value) return;
+      const cmd = option.value as PaletteCommand;
+      closeCommandPalette();
+      await cmd.action();
+    },
   });
-  container.add(commandPalette);
-
-  commandPalette.on(SelectRenderableEvents.ITEM_SELECTED, async (_: number, option: SelectOption) => {
-    if (!option.value) return;
-    const cmd = option.value as PaletteCommand;
-    closeCommandPalette();
-    await cmd.action();
-  });
-
-  commandPalette.focus();
 }
 
 function getCommandPaletteSelectOptions(): SelectOption[] {
@@ -1861,38 +1906,40 @@ function getCommandPaletteSelectOptions(): SelectOption[] {
 }
 
 function updateCommandPaletteOptions(): void {
-  if (!commandPalette) return;
-  commandPalette.options = getCommandPaletteSelectOptions();
-  commandPalette.setSelectedIndex(0);
+  if (!commandPaletteModal) return;
+  commandPaletteModal.updateOptions(getCommandPaletteSelectOptions(), 0);
 }
 
 function closeCommandPalette() {
-  if (commandPalette) {
-    renderer.root.remove("command-palette-container");
-    commandPalette = null;
+  if (commandPaletteModal) {
+    commandPaletteModal.close();
+    commandPaletteModal = null;
     commandPaletteQuery = "";
-    inputField?.focus();
   }
 }
 
 function handleKeypress(key: KeyEvent) {
   const commands = getCommandPaletteOptions();
 
-  if (slashCommandMatches.length > 0) {
+  if (slashCommandModal && slashCommandMatches.length > 0) {
     if (key.name === "up") {
       slashCommandSelectedIndex = slashCommandSelectedIndex === 0 ? slashCommandMatches.length - 1 : slashCommandSelectedIndex - 1;
-      updateSlashCommandMenuOptions();
+      updateSlashCommandModalOptions();
       return;
     }
     if (key.name === "down") {
       slashCommandSelectedIndex = (slashCommandSelectedIndex + 1) % slashCommandMatches.length;
-      updateSlashCommandMenuOptions();
+      updateSlashCommandModalOptions();
       return;
     }
     if (key.name === "tab") {
       inputField.setText(`/${slashCommandMatches[slashCommandSelectedIndex].slash}`);
       syncSlashCommandMenu();
       inputField.focus();
+      return;
+    }
+    if (key.name === "return" && !key.shift && !key.ctrl && !key.meta) {
+      void executeSelectedSlashCommand();
       return;
     }
   }
@@ -1928,7 +1975,7 @@ function handleKeypress(key: KeyEvent) {
     return;
   }
 
-  if (commandPalette) {
+  if (commandPaletteModal) {
     if (key.name === "backspace" || key.name === "delete") {
       commandPaletteQuery = commandPaletteQuery.slice(0, -1);
       updateCommandPaletteOptions();
@@ -1944,7 +1991,7 @@ function handleKeypress(key: KeyEvent) {
 
   // Ctrl+C - close popups/cancel operations first, then exit like a standard TUI.
   if (key.ctrl && key.name === "c") {
-    if (commandPalette) {
+    if (commandPaletteModal) {
       closeCommandPalette();
       return;
     }
@@ -1977,7 +2024,7 @@ function handleKeypress(key: KeyEvent) {
   // Escape to cancel/close
   if (key.name === "escape") {
     chordMode = "none";
-    if (commandPalette) {
+    if (commandPaletteModal) {
       closeCommandPalette();
       return;
     }
@@ -2034,7 +2081,7 @@ function handleKeypress(key: KeyEvent) {
   }
 
   // 'o' to toggle expand/collapse on the most recent result message
-  if (key.name === "o" && !awaitingConfirmation && !commandPalette && !modelSelector) {
+  if (key.name === "o" && !awaitingConfirmation && !commandPaletteModal && !modelSelector) {
     toggleLastResultExpand();
   }
 }

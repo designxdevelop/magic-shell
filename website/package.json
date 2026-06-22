@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "astro dev",
     "models:generate": "bun run scripts/generate-models-data.ts",
-    "build": "npm run models:generate && astro build",
+    "prebuild": "npm run models:generate",
+    "build": "astro build",
     "preview": "astro preview",
     "deploy": "npm run build && wrangler deploy",
     "deploy:dry-run": "npm run build && wrangler deploy --dry-run",

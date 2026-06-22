@@ -69,13 +69,12 @@ const categoryClass: Record<string, string> = {
         <input type="checkbox" name="provider" value="all" checked />
         All
       </label>
-      {providers.map((p, i) => (
+      {providers.map((p) => (
         <label class="mc__chip">
           <input
             type="checkbox"
             name="provider"
             value={p.id}
-            checked={i === 0}
           />
           {p.displayName}
         </label>
@@ -90,7 +89,7 @@ const categoryClass: Record<string, string> = {
       </label>
       {categories.map((c) => (
         <label class="mc__chip">
-          <input type="checkbox" name="category" value={c} checked />
+          <input type="checkbox" name="category" value={c} />
           {c[0].toUpperCase() + c.slice(1)}
         </label>
       ))}
@@ -99,7 +98,7 @@ const categoryClass: Record<string, string> = {
     <fieldset class="mc__filter-group mc__filter-group--cost">
       <legend class="mc__filter-legend">Cost</legend>
       <label class="mc__chip">
-        <input type="checkbox" name="cost" value="Free" checked />
+        <input type="checkbox" name="cost" value="Free" />
         Free only
       </label>
     </fieldset>
@@ -118,6 +117,14 @@ const categoryClass: Record<string, string> = {
 
       <div class="mc__table-wrap">
         <table class="mc__table">
+          <colgroup>
+            <col class="mc__col-model" />
+            <col class="mc__col-id" />
+            <col class="mc__col-category" />
+            <col class="mc__col-cost" />
+            <col class="mc__col-context" />
+            {p.id === "opencode-zen" && <col class="mc__col-zen" />}
+          </colgroup>
           <thead>
             <tr>
               <th scope="col">Model</th>
@@ -157,6 +164,11 @@ const categoryClass: Record<string, string> = {
                 )}
               </tr>
             ))}
+            <tr class="mc__empty" hidden>
+              <td colspan={p.id === "opencode-zen" ? 6 : 5}>
+                No models match these filters.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -203,9 +215,10 @@ const categoryClass: Record<string, string> = {
           row.hidden = !visible
           if (visible) anyRowVisible = true
         })
-        section.hidden = providerVisible ? false : !anyRowVisible
-        if (providerVisible && !providerAll && !anyRowVisible) {
-          section.hidden = true
+        section.hidden = !providerVisible
+        const empty = section.querySelector(".mc__empty")
+        if (empty) {
+          empty.hidden = anyRowVisible
         }
       })
     }
@@ -219,7 +232,9 @@ const categoryClass: Record<string, string> = {
                 if (b.value !== allValue) b.checked = false
               })
             } else {
-              box.checked = true
+              boxes.forEach((b) => {
+                if (b.value !== allValue) b.checked = true
+              })
             }
           } else if (box.checked) {
             boxes.forEach((b) => {
@@ -376,9 +391,16 @@ const categoryClass: Record<string, string> = {
 
   .mc__table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: var(--sl-text-sm, 0.875rem);
   }
+  .mc__col-model { width: 34%; }
+  .mc__col-id { width: 30%; }
+  .mc__col-category { width: 14%; }
+  .mc__col-cost { width: 12%; }
+  .mc__col-context { width: 10%; }
+  .mc__col-zen { width: 14%; }
   .mc__table th,
   .mc__table td {
     text-align: start;
@@ -397,6 +419,12 @@ const categoryClass: Record<string, string> = {
   }
   .mc__table tbody tr:last-child td { border-bottom: 0; }
   .mc__table tbody tr:hover { background: var(--ms-color-bg-elevated, transparent); }
+
+  .mc__empty td {
+    color: var(--sl-color-gray-3, #505050);
+    font-style: italic;
+    text-align: center;
+  }
 
   .mc__model-name { font-weight: 600; color: var(--sl-color-white, #eee); }
   .mc__model-desc {
@@ -432,6 +460,12 @@ const categoryClass: Record<string, string> = {
   }
 
   @media (max-width: 40rem) {
+    .mc__col-model { width: 52%; }
+    .mc__col-category { width: 18%; }
+    .mc__col-cost { width: 16%; }
+    .mc__col-context { width: 14%; }
+    .mc__col-id { display: none; }
+
     .mc__table th:nth-child(2),
     .mc__table td:nth-child(2) { display: none; }
   }

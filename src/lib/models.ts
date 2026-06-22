@@ -26,8 +26,8 @@ export const OPENROUTER_MODELS: Model[] = [
     cost: "lower-cost",
   },
   {
-    id: "z-ai/glm-5-turbo",
-    name: "GLM 5 Turbo",
+    id: "z-ai/glm-5.2",
+    name: "GLM 5.2",
     description: "Z.ai's latest fast GLM model",
     category: "fast",
     provider: "openrouter",
@@ -195,7 +195,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "gpt-5-nano",
     name: "GPT 5 Nano",
-    description: "OpenAI's lightweight GPT model ($0.05/$0.40 per 1M tokens)",
+    description: "OpenAI's lightweight GPT model",
     category: "fast",
     provider: "opencode-zen",
     zenApiType: "openai-responses",

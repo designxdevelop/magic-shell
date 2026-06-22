@@ -21,3 +21,4 @@ npm-debug.log*
 
 # Package tarballs
 *.tgz
+.opencode/package-lock.json

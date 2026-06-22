@@ -21,16 +21,12 @@ This will guide you through:
 ### Get an API Key
 
 <Tabs>
-  <TabItem label="OpenCode Zen (Recommended)">
+  <TabItem label="OpenCode Zen">
     OpenCode Zen offers curated models optimized for coding, including **free models**.
 
     1. Visit [opencode.ai/auth](https://opencode.ai/auth)
     2. Create an account or sign in
     3. Copy your API key
-
-    <Aside type="tip">
-      OpenCode Zen has free models like `deepseek-v4-flash-free`, `mimo-v2.5-free`, and `north-mini-code-free` that work great for most tasks!
-    </Aside>
   </TabItem>
   <TabItem label="OpenRouter">
     OpenRouter provides access to a wide variety of models from different providers.
@@ -38,6 +34,29 @@ This will guide you through:
     1. Visit [openrouter.ai/keys](https://openrouter.ai/keys)
     2. Create an account or sign in
     3. Generate a new API key
+  </TabItem>
+  <TabItem label="Vercel AI Gateway">
+    Vercel AI Gateway routes requests to multiple model providers through a single Vercel-managed endpoint.
+
+    1. Visit your [Vercel dashboard](https://vercel.com/dashboard)
+    2. Open the AI Gateway settings and create a token
+  </TabItem>
+  <TabItem label="Cloudflare AI Gateway">
+    Cloudflare AI Gateway routes requests to upstream providers through Cloudflare with caching, rate limiting, and observability.
+
+    1. Visit [dash.cloudflare.com](https://dash.cloudflare.com)
+    2. Note your **Account ID** and create an AI Gateway (note the **Gateway ID**, defaults to `default`)
+    3. Create an API token with AI Gateway permissions
+  </TabItem>
+  <TabItem label="Cloudflare Workers AI">
+    Workers AI runs open models directly on Cloudflare's network.
+
+    1. Visit [dash.cloudflare.com](https://dash.cloudflare.com)
+    2. Note your **Account ID**
+    3. Create an API token with Workers AI permissions
+  </TabItem>
+  <TabItem label="Custom">
+    Use any OpenAI-compatible endpoint (LM Studio, Ollama, self-hosted APIs). No API key needed for local setups; run `msh --add-model` to configure. See [AI Providers](/features/providers/) for details.
   </TabItem>
 </Tabs>
 

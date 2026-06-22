@@ -5,50 +5,55 @@ description: Choose between OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudfl
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
-Magic Shell supports multiple AI providers, including OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models for local or remote endpoints.
+Magic Shell supports multiple AI providers, including OpenCode Zen, OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models for local or remote endpoints. All providers are equal options — pick the one that fits your workflow, budget, and existing infrastructure.
 
-## OpenCode Zen (Recommended)
+Each provider section below lists a curated set of recent, recommended models with a cost indicator:
 
-OpenCode Zen provides curated models optimized for coding tasks. It's the default provider and offers several **free models**.
+- **Free** — no-cost model (may be time-limited)
+- **Lower-cost** — open-weight, flash, or haiku-class model
+- **Premium** — flagship or high-capability model
 
-### Free Models
+## Model Equivalents Across Providers
 
-| Model | Description |
-|-------|-------------|
-| `deepseek-v4-flash-free` | DeepSeek's free fast open-source model (default) |
-| `mimo-v2.5-free` | Xiaomi's free long-context MiMo model |
-| `north-mini-code-free` | North's free coding model |
-| `nemotron-3-ultra-free` | NVIDIA Nemotron free trial model |
-| `big-pickle` | OpenCode stealth model |
-| `gpt-5-nano` | OpenAI's free lightweight GPT model |
+Flagship models are available on multiple providers. Use this table to find the equivalent model ID on your preferred provider. Empty cells (`—`) mean that provider does not offer the model.
 
-### Premium Models
-
-| Model | Description |
-|-------|-------------|
-| `claude-sonnet-4-6` | Anthropic's latest Sonnet model |
-| `claude-opus-4-8` | Anthropic's latest Opus model |
-| `claude-haiku-4-5` | Anthropic's latest fast model |
-| `kimi-k2.6` | Moonshot's latest Kimi model |
-| `deepseek-v4-pro` | DeepSeek's latest high-context model |
-| `deepseek-v4-flash` | DeepSeek's latest fast model |
-| `glm-5.2` | Z.ai's latest long-context GLM model |
-| `glm-5.1` | Z.ai's latest GLM model |
-| `qwen3.7-max` | Qwen's latest high-capability open-weight model |
-| `qwen3.7-plus` | Qwen's latest long-context open-weight model |
-| `mimo-v2.5` | Xiaomi's latest long-context MiMo model |
-| `mimo-v2.5-pro` | Xiaomi's latest pro MiMo model |
-| `minimax-m2.7` | MiniMax's latest model |
-| `gemini-3.5-flash` | Google's latest fast Gemini model |
-| `gemini-3.1-pro` | Google's high-end Gemini model |
-| `gemini-3-flash` | Google's fast Gemini model |
-| `gpt-5.5` | OpenAI's latest flagship GPT model |
-| `gpt-5.5-pro` | OpenAI's latest high-capability reasoning model |
-| `gpt-5.3-codex` | OpenAI's latest coding-focused GPT model |
+| Model family | OpenCode Zen | OpenRouter | Vercel AI Gateway | Cloudflare AI Gateway | Workers AI |
+|---------------|--------------|------------|-------------------|-----------------------|------------|
+| GPT 5.5 | `gpt-5.5` | `openai/gpt-5.5` | `openai/gpt-5.5` | `openai/gpt-5.5` | — |
+| GPT 5.5 Pro | `gpt-5.5-pro` | `openai/gpt-5.5-pro` | `openai/gpt-5.5-pro` | — | — |
+| Claude Sonnet 4.6 | `claude-sonnet-4-6` | `anthropic/claude-sonnet-4.6` | `anthropic/claude-sonnet-4.6` | `anthropic/claude-sonnet-4-6` | — |
+| Claude Opus 4.8 | `claude-opus-4-8` | `anthropic/claude-opus-4.8` | `anthropic/claude-opus-4.8` | `anthropic/claude-opus-4-8` | — |
+| Claude Haiku 4.5 | `claude-haiku-4-5` | — | — | — | — |
+| Gemini 3.5 Flash | `gemini-3.5-flash` | — | — | — | — |
+| DeepSeek V4 Flash | `deepseek-v4-flash` | `deepseek/deepseek-v4-flash` | — | — | — |
+| DeepSeek V4 Pro | `deepseek-v4-pro` | `deepseek/deepseek-v4-pro` | — | — | — |
+| GLM 5.2 | `glm-5.2` | `z-ai/glm-5.2` | — | — | — |
+| Kimi K2.6 | `kimi-k2.6` | `moonshotai/kimi-k2.6` | — | — | — |
+| Kimi K2.7 Code | — | `moonshotai/kimi-k2.7-code` | — | — | — |
+| Qwen 3.7 Max | `qwen3.7-max` | `qwen/qwen3.7-max` | — | — | — |
+| MiMo V2.5 | `mimo-v2.5` | `xiaomi/mimo-v2.5` | — | — | — |
+| Llama 3.3 70B Fast | — | — | — | `workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast` | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` |
+| Llama 3.1 8B | — | — | — | — | `@cf/meta/llama-3.1-8b-instruct` |
+| GPT OSS 120B | — | — | — | — | `@cf/openai/gpt-oss-120b` |
 
 <Aside type="tip">
-  For most shell commands, `deepseek-v4-flash-free` is a good default for quick experiments.
+  Run `msh --models` to see every model available for your currently configured provider, including older generations not listed here.
 </Aside>
+
+## OpenCode Zen
+
+OpenCode Zen provides curated models optimized for coding tasks, including several **free models** (some are time-limited).
+
+| Model | Category | Cost |
+|-------|----------|------|
+| `deepseek-v4-flash-free` | Fast | Free |
+| `gpt-5-nano` | Fast | Free |
+| `claude-haiku-4-5` | Fast | Lower-cost |
+| `gemini-3.5-flash` | Fast | Lower-cost |
+| `claude-sonnet-4-6` | Smart | Premium |
+| `gpt-5.5` | Smart | Premium |
+| `claude-opus-4-8` | Reasoning | Premium |
+| `gpt-5.5-pro` | Reasoning | Premium |
 
 ### Get an API Key
 
@@ -59,30 +64,18 @@ OpenCode Zen provides curated models optimized for coding tasks. It's the defaul
 
 ## OpenRouter
 
-OpenRouter provides access to models from many providers through a single API.
+OpenRouter provides access to models from many providers through a single API, including open-weight value options not available on the other gateways.
 
-### Models
-
-| Model | Description |
-|-------|-------------|
-| `xiaomi/mimo-v2.5` | Xiaomi's latest long-context MiMo model |
-| `xiaomi/mimo-v2.5-pro` | Xiaomi's latest pro MiMo model |
-| `moonshotai/kimi-k2.7-code` | Moonshot's latest open-weight coding model |
-| `moonshotai/kimi-k2.6` | Moonshot's latest Kimi model |
-| `deepseek/deepseek-v4-pro` | DeepSeek's latest high-context model |
-| `deepseek/deepseek-v4-flash` | DeepSeek's latest fast model |
-| `z-ai/glm-5.2` | Z.ai's latest long-context GLM model |
-| `z-ai/glm-5.1` | Z.ai's latest GLM model |
-| `z-ai/glm-5-turbo` | Z.ai's latest fast GLM model |
-| `minimax/minimax-m3` | MiniMax's latest open-weight multimodal model |
-| `minimax/minimax-m2.7` | MiniMax's latest model |
-| `openai/gpt-latest` | OpenAI GPT latest alias |
-| `openai/gpt-5.5` | OpenAI's latest flagship GPT model |
-| `openai/gpt-5.5-pro` | OpenAI's latest high-capability reasoning model |
-| `anthropic/claude-sonnet-latest` | Claude Sonnet latest alias |
-| `anthropic/claude-sonnet-4.6` | Anthropic's latest Sonnet model |
-| `anthropic/claude-opus-latest` | Claude Opus latest alias |
-| `anthropic/claude-opus-4.8` | Anthropic's latest Opus model |
+| Model | Category | Cost |
+|-------|----------|------|
+| `deepseek/deepseek-v4-flash` | Fast | Lower-cost |
+| `z-ai/glm-5-turbo` | Fast | Lower-cost |
+| `moonshotai/kimi-k2.7-code` | Smart | Lower-cost |
+| `deepseek/deepseek-v4-pro` | Smart | Lower-cost |
+| `anthropic/claude-sonnet-4.6` | Smart | Premium |
+| `openai/gpt-5.5` | Smart | Premium |
+| `anthropic/claude-opus-4.8` | Reasoning | Premium |
+| `openai/gpt-5.5-pro` | Reasoning | Premium |
 
 ### Get an API Key
 
@@ -90,6 +83,63 @@ OpenRouter provides access to models from many providers through a single API.
 2. Create an account
 3. Generate a new API key
 4. Run `msh --setup` and select OpenRouter
+
+## Vercel AI Gateway
+
+Vercel AI Gateway routes requests to multiple model providers through a single Vercel-managed endpoint.
+
+| Model | Category | Cost |
+|-------|----------|------|
+| `openai/gpt-5.5` | Smart | Premium |
+| `anthropic/claude-sonnet-4.6` | Smart | Premium |
+| `openai/gpt-5.5-pro` | Reasoning | Premium |
+| `anthropic/claude-opus-4.8` | Reasoning | Premium |
+
+### Get an API Key
+
+1. Visit your [Vercel dashboard](https://vercel.com/dashboard)
+2. Open the AI Gateway settings and create a token
+3. Run `msh --setup` and select Vercel AI Gateway
+
+## Cloudflare AI Gateway
+
+Cloudflare AI Gateway routes requests to upstream providers (OpenAI, Anthropic, Workers AI) through Cloudflare with caching, rate limiting, and observability. Requires a Cloudflare account ID and gateway ID.
+
+| Model | Category | Cost |
+|-------|----------|------|
+| `openai/gpt-5.5` | Smart | Premium |
+| `anthropic/claude-sonnet-4-6` | Smart | Premium |
+| `anthropic/claude-opus-4-8` | Reasoning | Premium |
+| `workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Smart | Lower-cost |
+
+### Get an API Key
+
+1. Visit [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Note your **Account ID** (found on the Cloudflare dashboard sidebar)
+3. Create an AI Gateway and note its **Gateway ID** (defaults to `default`)
+4. Create an API token with AI Gateway permissions
+5. Run `msh --setup` and select Cloudflare AI Gateway, then set your account ID and gateway ID
+
+<Aside type="note">
+  Cloudflare AI Gateway sends the token via the `cf-aig-authorization` header. Set `CLOUDFLARE_AI_GATEWAY_API_KEY` (or `CF_AIG_TOKEN`) along with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_AI_GATEWAY_ID`.
+</Aside>
+
+## Cloudflare Workers AI
+
+Workers AI runs open models directly on Cloudflare's network — no upstream provider required. Requires a Cloudflare account ID.
+
+| Model | Category | Cost |
+|-------|----------|------|
+| `@cf/meta/llama-3.1-8b-instruct` | Fast | Lower-cost |
+| `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Smart | Lower-cost |
+| `@cf/openai/gpt-oss-120b` | Reasoning | Lower-cost |
+
+### Get an API Key
+
+1. Visit [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Note your **Account ID** (found on the Cloudflare dashboard sidebar)
+3. Create an API token with Workers AI permissions
+4. Run `msh --setup` and select Workers AI, then set your account ID
 
 ## Switching Providers
 
@@ -99,7 +149,7 @@ OpenRouter provides access to models from many providers through a single API.
 # Switch to OpenRouter
 msh --provider openrouter
 
-# Switch back to OpenCode Zen
+# Switch to OpenCode Zen
 msh --provider opencode-zen
 
 # Switch to Vercel AI Gateway
@@ -132,16 +182,6 @@ msh --model deepseek-v4-flash-free
 
 Press `Ctrl+X M` to open the model picker.
 
-## Model Recommendations
-
-| Use Case | Recommended Model |
-|----------|------------------|
-| Quick commands | `deepseek-v4-flash-free` |
-| Complex git operations | `claude-sonnet-4-6` |
-| System administration | `deepseek-v4-flash-free` or `minimax-m2.7` |
-| Multi-step tasks | `claude-opus-4-8` or `qwen3.7-max` |
-| Learning/experimenting | Any free model |
-
 ## Environment Variables
 
 Set your API keys via environment variables:
@@ -150,16 +190,20 @@ Set your API keys via environment variables:
 # OpenCode Zen
 export OPENCODE_ZEN_API_KEY="your-key"
 
-# OpenRouter  
+# OpenRouter
 export OPENROUTER_API_KEY="your-key"
 
 # Vercel AI Gateway
 export AI_GATEWAY_API_KEY="your-key"
 
-# Cloudflare providers
+# Cloudflare AI Gateway
+export CLOUDFLARE_AI_GATEWAY_API_KEY="your-gateway-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
+export CLOUDFLARE_AI_GATEWAY_ID="your-gateway-id"
+
+# Cloudflare Workers AI
 export CLOUDFLARE_API_TOKEN="your-token"
 export CLOUDFLARE_ACCOUNT_ID="your-account-id"
-export CLOUDFLARE_AI_GATEWAY_API_KEY="your-gateway-token"
 ```
 
 Keys stored in the system keychain (via `msh --setup`) take precedence over environment variables.

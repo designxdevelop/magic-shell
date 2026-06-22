@@ -27,8 +27,10 @@ import {
   OPENCODE_ZEN_MODELS,
   getProviderDisplayName,
   getProviderModels,
+  sortModelsByCost,
   type Model,
   type CustomModel,
+  type CostTier,
   type CommandHistory,
   type Config,
   type Provider,
@@ -93,8 +95,24 @@ function generateMessageId(): string {
   return `msg-${++messageIdCounter}`;
 }
 
-function isFreeModel(model: Model | CustomModel): model is Model & { free: true } {
-  return !isCustomModel(model) && Boolean(model.free);
+function isFreeModel(model: Model | CustomModel): model is Model & { cost: "free" } {
+  return !isCustomModel(model) && model.cost === "free";
+}
+
+function getCostTier(model: Model | CustomModel): CostTier {
+  if (!isCustomModel(model)) return model.cost;
+  return model.category === "fast" ? "lower-cost" : "premium";
+}
+
+function costTierLabel(tier: CostTier): string {
+  switch (tier) {
+    case "free":
+      return "FREE";
+    case "lower-cost":
+      return "lower-cost";
+    case "premium":
+      return "premium";
+  }
 }
 
 async function main() {
@@ -1272,23 +1290,24 @@ function showModelSelector() {
   });
   renderer.root.add(container);
 
-  // Filter models by current provider, exclude disabled models
+  // Filter models by current provider, exclude disabled models, sort by cost tier
   const allModels = getProviderModels(config.provider);
-  const availableModels = allModels.filter((m) => !m.disabled).sort((a, b) => a.name.localeCompare(b.name));
+  const availableModels = allModels.filter((m) => !m.disabled);
+  const sortedModels = sortModelsByCost(availableModels);
 
   // Get custom models
   const customModels = getCustomModels().sort((a, b) => a.name.localeCompare(b.name));
 
   const options: SelectOption[] = [
     // Provider models first
-    ...availableModels.map((model) => ({
-      name: `${model.name} [${model.category}]${model.free ? " FREE" : ""}`,
+    ...sortedModels.map((model) => ({
+      name: `${model.name} [${costTierLabel(model.cost)}]`,
       description: model.description,
       value: model as Model | CustomModel,
     })),
     // Custom models with "(custom)" label
     ...customModels.map((model) => ({
-      name: `${model.name} [${model.category}] (custom)`,
+      name: `${model.name} [custom]`,
       description: `${model.baseUrl} - ${model.modelId}`,
       value: model as Model | CustomModel,
     })),

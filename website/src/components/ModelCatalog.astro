@@ -14,7 +14,7 @@ interface Model {
   category: "fast" | "smart" | "reasoning"
   provider: string
   contextLength: number
-  free: boolean
+  cost: "free" | "lower-cost" | "premium"
   zenApiType?: string
   disabled?: boolean
   disabledReason?: string
@@ -29,9 +29,9 @@ interface ProviderCatalog {
 const providers = (modelData as { providers: ProviderCatalog[] }).providers
 
 function costLabel(m: Model): "Free" | "Lower-cost" | "Premium" {
-  if (m.free) return "Free"
-  if (m.category === "fast") return "Lower-cost"
-  return m.category === "reasoning" ? "Premium" : "Premium"
+  if (m.cost === "free") return "Free"
+  if (m.cost === "lower-cost") return "Lower-cost"
+  return "Premium"
 }
 
 function formatContext(tokens: number): string {
@@ -134,7 +134,7 @@ const categoryClass: Record<string, string> = {
                 class="mc__row"
                 data-category={m.category}
                 data-cost={costLabel(m)}
-                data-free={m.free ? "true" : "false"}
+                data-free={m.cost === "free" ? "true" : "false"}
               >
                 <td>
                   <div class="mc__model-name">{m.name}</div>

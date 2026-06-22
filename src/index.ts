@@ -27,6 +27,7 @@ import {
   ALL_MODELS,
   getProviderDisplayName,
   getProviderModels,
+  sortModelsByCost,
   type Model,
   type Provider,
   type CustomModel,
@@ -123,44 +124,15 @@ function printModels() {
   const config = loadConfig();
   const customModels = getCustomModels();
 
-  console.log(`\n${colors.bold}OpenCode Zen Models${colors.reset}`);
-  console.log(`${colors.dim}(* = free, X = temporarily disabled)${colors.reset}\n`);
-
-  const sortedZenModels = [...OPENCODE_ZEN_MODELS].sort((a, b) => a.name.localeCompare(b.name));
-  for (const model of sortedZenModels) {
-    const isCurrent = config.provider === "opencode-zen" && config.defaultModel === model.id;
-    const marker = isCurrent ? colors.success + "→ " : "  ";
-    const free = model.free ? colors.success + " *" + colors.reset : "";
-    const disabled = model.disabled ? colors.error + " X" + colors.reset : "";
-    const category = colors.dim + `[${model.category}]` + colors.reset;
-    const name = model.disabled ? colors.dim + model.id + colors.reset : model.id;
-    console.log(`${marker}${name}${free}${disabled} ${category}`);
-    if (model.disabled && model.disabledReason) {
-      console.log(`    ${colors.error}${model.disabledReason}${colors.reset}`);
-    } else {
-      console.log(`    ${colors.dim}${model.description}${colors.reset}`);
-    }
-  }
-
-  console.log(`\n${colors.bold}OpenRouter Models${colors.reset}\n`);
-
-  const sortedRouterModels = [...OPENROUTER_MODELS].sort((a, b) => a.name.localeCompare(b.name));
-  for (const model of sortedRouterModels) {
-    const isCurrent = config.provider === "openrouter" && config.defaultModel === model.id;
-    const marker = isCurrent ? colors.success + "→ " : "  ";
-    const free = model.free ? colors.success + " *" + colors.reset : "";
-    const disabled = model.disabled ? colors.error + " X" + colors.reset : "";
-    const category = colors.dim + `[${model.category}]` + colors.reset;
-    const name = model.disabled ? colors.dim + model.id + colors.reset : model.id;
-    console.log(`${marker}${name}${free}${disabled} ${category}`);
-    if (model.disabled && model.disabledReason) {
-      console.log(`    ${colors.error}${model.disabledReason}${colors.reset}`);
-    } else {
-      console.log(`    ${colors.dim}${model.description}${colors.reset}`);
-    }
-  }
+  const costLabel = (cost: string) => {
+    if (cost === "free") return colors.success + "[free]" + colors.reset;
+    if (cost === "lower-cost") return colors.dim + "[lower-cost]" + colors.reset;
+    return colors.dim + "[premium]" + colors.reset;
+  };
 
   const providerSections: Array<[string, Model[], Provider]> = [
+    ["OpenCode Zen Models", OPENCODE_ZEN_MODELS, "opencode-zen"],
+    ["OpenRouter Models", OPENROUTER_MODELS, "openrouter"],
     ["Vercel AI Gateway Models", VERCEL_AI_GATEWAY_MODELS, "vercel-ai-gateway"],
     ["Cloudflare AI Gateway Models", CLOUDFLARE_AI_GATEWAY_MODELS, "cloudflare-ai-gateway"],
     ["Cloudflare Workers AI Models", WORKERS_AI_MODELS, "workers-ai"],
@@ -168,12 +140,13 @@ function printModels() {
 
   for (const [title, models, provider] of providerSections) {
     console.log(`\n${colors.bold}${title}${colors.reset}\n`);
-    const sortedModels = [...models].sort((a, b) => a.name.localeCompare(b.name));
-    for (const model of sortedModels) {
+    const sorted = sortModelsByCost(models.filter((m) => !m.disabled));
+    for (const model of sorted) {
       const isCurrent = config.provider === provider && config.defaultModel === model.id;
       const marker = isCurrent ? colors.success + "→ " : "  ";
-      const category = colors.dim + `[${model.category}]` + colors.reset;
-      console.log(`${marker}${model.id} ${category}`);
+      const name = model.id;
+      const cost = costLabel(model.cost);
+      console.log(`${marker}${name} ${cost}`);
       console.log(`    ${colors.dim}${model.description}${colors.reset}`);
     }
   }
@@ -185,8 +158,7 @@ function printModels() {
     for (const model of sortedCustomModels) {
       const isCurrent = config.defaultModel === model.id;
       const marker = isCurrent ? colors.success + "→ " : "  ";
-      const category = colors.dim + `[${model.category}]` + colors.reset;
-      console.log(`${marker}${model.id} ${colors.info}(custom)${colors.reset} ${category}`);
+      console.log(`${marker}${model.id} ${colors.info}[custom]${colors.reset}`);
       console.log(`    ${colors.dim}${model.name} - ${model.baseUrl}${colors.reset}`);
     }
   }
@@ -350,12 +322,12 @@ async function setup() {
   }
 
   const models = getProviderModels(provider);
-  const freeModels = models.filter((m) => m.free);
+  const freeModels = models.filter((m) => m.cost === "free");
 
   console.log("\nRecommended models:");
   const displayModels = freeModels.length > 0 ? freeModels.slice(0, 5) : models.slice(0, 5);
   displayModels.forEach((m, i) => {
-    const free = m.free ? colors.green + " (free)" + colors.reset : "";
+    const free = m.cost === "free" ? colors.green + " (free)" + colors.reset : "";
     console.log(`  ${i + 1}. ${m.name}${free} - ${m.description}`);
   });
 

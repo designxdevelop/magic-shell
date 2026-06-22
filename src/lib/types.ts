@@ -10,6 +10,8 @@ export type ThinkingLevel = "off" | "low" | "medium" | "high";
 
 export type ZenApiType = "openai-responses" | "anthropic" | "openai-compatible" | "google";
 
+export type CostTier = "free" | "lower-cost" | "premium";
+
 export interface Model {
   id: string;
   name: string;
@@ -17,8 +19,8 @@ export interface Model {
   category: "fast" | "smart" | "reasoning";
   provider: Provider;
   contextLength: number;
+  cost: CostTier;
   zenApiType?: ZenApiType;
-  free?: boolean;
   disabled?: boolean;
   disabledReason?: string;
 }
@@ -44,6 +46,7 @@ export {
   ALL_MODELS,
   getProviderModels,
   getProviderDisplayName,
+  sortModelsByCost,
 } from "./models";
 
 export interface Config {

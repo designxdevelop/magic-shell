@@ -69,6 +69,8 @@ import { loadConfig, saveConfig } from "./config"
 export type Provider = "openrouter" | "opencode-zen"
 export type SafetySeverity = "low" | "medium" | "high" | "critical"
 
+export type CostTier = "free" | "lower-cost" | "premium"
+
 export interface Model {
   id: string
   name: string
@@ -76,9 +78,14 @@ export interface Model {
   category: "fast" | "smart" | "reasoning"
   provider: Provider
   contextLength: number
-  free?: boolean
+  cost: CostTier
   disabled?: boolean
   disabledReason?: string
+}
+
+// Use explicit return types for exported functions
+export function analyzeCommand(command: string, config: Config): SafetyAnalysis {
+  // ...
 }
 
 // Use explicit return types for exported functions

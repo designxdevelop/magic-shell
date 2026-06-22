@@ -1,20 +1,21 @@
-import type { Model, Provider } from "./types";
+import type { Model, Provider, CostTier } from "./types";
 
-// OpenRouter models — curated June 2026
-// 6-8 per provider: latest available versions spanning free / lower-cost / premium
-// across fast / smart / reasoning categories.
+// Curated June 2026 — 6-8 per provider, latest available versions.
+// cost tiers: "free" | "lower-cost" | "premium"
+// categories: "fast" | "smart" | "reasoning"
+// Thinking defaults to "low" via config; models that support it get
+// reasoning controls automatically (see api.ts supportsThinkingControl).
+
 export const OPENROUTER_MODELS: Model[] = [
-  // Fast / free
   {
     id: "deepseek/deepseek-v4-flash:free",
     name: "DeepSeek V4 Flash (Free)",
-    description: "DeepSeek's fast open-source model on OpenRouter's free tier (limited rate)",
+    description: "DeepSeek's fast open-source model on OpenRouter's free tier (rate-limited)",
     category: "fast",
     provider: "openrouter",
     contextLength: 1048576,
-    free: true,
+    cost: "free",
   },
-  // Fast / lower-cost
   {
     id: "deepseek/deepseek-v4-flash",
     name: "DeepSeek V4 Flash",
@@ -22,6 +23,7 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "fast",
     provider: "openrouter",
     contextLength: 1048576,
+    cost: "lower-cost",
   },
   {
     id: "z-ai/glm-5-turbo",
@@ -30,8 +32,8 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "fast",
     provider: "openrouter",
     contextLength: 202752,
+    cost: "lower-cost",
   },
-  // Smart / lower-cost
   {
     id: "moonshotai/kimi-k2.7-code",
     name: "Kimi K2.7 Code",
@@ -39,6 +41,7 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "smart",
     provider: "openrouter",
     contextLength: 262144,
+    cost: "lower-cost",
   },
   {
     id: "deepseek/deepseek-v4-pro",
@@ -47,8 +50,8 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "smart",
     provider: "openrouter",
     contextLength: 1048576,
+    cost: "lower-cost",
   },
-  // Smart / premium
   {
     id: "anthropic/claude-sonnet-4.6",
     name: "Claude Sonnet 4.6",
@@ -56,6 +59,7 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "smart",
     provider: "openrouter",
     contextLength: 1000000,
+    cost: "premium",
   },
   {
     id: "openai/gpt-5.5",
@@ -64,8 +68,8 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "smart",
     provider: "openrouter",
     contextLength: 1050000,
+    cost: "premium",
   },
-  // Reasoning / premium
   {
     id: "anthropic/claude-opus-4.8",
     name: "Claude Opus 4.8",
@@ -73,19 +77,11 @@ export const OPENROUTER_MODELS: Model[] = [
     category: "reasoning",
     provider: "openrouter",
     contextLength: 1000000,
-  },
-  {
-    id: "openai/gpt-5.5-pro",
-    name: "GPT 5.5 Pro",
-    description: "OpenAI's latest high-capability reasoning model",
-    category: "reasoning",
-    provider: "openrouter",
-    contextLength: 1050000,
+    cost: "premium",
   },
 ];
 
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
-  // Smart / premium
   {
     id: "openai/gpt-5.5",
     name: "GPT 5.5",
@@ -93,6 +89,7 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
     category: "smart",
     provider: "vercel-ai-gateway",
     contextLength: 1050000,
+    cost: "premium",
   },
   {
     id: "anthropic/claude-sonnet-4.6",
@@ -101,15 +98,7 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
     category: "smart",
     provider: "vercel-ai-gateway",
     contextLength: 1000000,
-  },
-  // Reasoning / premium
-  {
-    id: "openai/gpt-5.5-pro",
-    name: "GPT 5.5 Pro",
-    description: "OpenAI's latest high-capability reasoning model",
-    category: "reasoning",
-    provider: "vercel-ai-gateway",
-    contextLength: 1050000,
+    cost: "premium",
   },
   {
     id: "anthropic/claude-opus-4.8",
@@ -118,11 +107,20 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
     category: "reasoning",
     provider: "vercel-ai-gateway",
     contextLength: 1000000,
+    cost: "premium",
   },
 ];
 
 export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
-  // Smart / premium
+  {
+    id: "workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    name: "Workers AI Llama 3.3 70B Fast",
+    description: "Cloudflare Workers AI fast Llama model routed through AI Gateway",
+    category: "smart",
+    provider: "cloudflare-ai-gateway",
+    contextLength: 24000,
+    cost: "lower-cost",
+  },
   {
     id: "openai/gpt-5.5",
     name: "GPT 5.5",
@@ -130,6 +128,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
     category: "smart",
     provider: "cloudflare-ai-gateway",
     contextLength: 1050000,
+    cost: "premium",
   },
   {
     id: "anthropic/claude-sonnet-4-6",
@@ -138,8 +137,8 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
     category: "smart",
     provider: "cloudflare-ai-gateway",
     contextLength: 1000000,
+    cost: "premium",
   },
-  // Reasoning / premium
   {
     id: "anthropic/claude-opus-4-8",
     name: "Claude Opus 4.8",
@@ -147,20 +146,11 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
     category: "reasoning",
     provider: "cloudflare-ai-gateway",
     contextLength: 1000000,
-  },
-  // Smart / lower-cost
-  {
-    id: "workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-    name: "Workers AI Llama 3.3 70B Fast",
-    description: "Cloudflare Workers AI fast Llama model routed through AI Gateway",
-    category: "smart",
-    provider: "cloudflare-ai-gateway",
-    contextLength: 24000,
+    cost: "premium",
   },
 ];
 
 export const WORKERS_AI_MODELS: Model[] = [
-  // Fast / lower-cost
   {
     id: "@cf/meta/llama-3.1-8b-instruct",
     name: "Llama 3.1 8B Instruct",
@@ -168,8 +158,8 @@ export const WORKERS_AI_MODELS: Model[] = [
     category: "fast",
     provider: "workers-ai",
     contextLength: 8000,
+    cost: "lower-cost",
   },
-  // Smart / lower-cost
   {
     id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     name: "Llama 3.3 70B Fast",
@@ -177,8 +167,8 @@ export const WORKERS_AI_MODELS: Model[] = [
     category: "smart",
     provider: "workers-ai",
     contextLength: 24000,
+    cost: "lower-cost",
   },
-  // Reasoning / lower-cost
   {
     id: "@cf/openai/gpt-oss-120b",
     name: "GPT OSS 120B",
@@ -186,14 +176,12 @@ export const WORKERS_AI_MODELS: Model[] = [
     category: "reasoning",
     provider: "workers-ai",
     contextLength: 32000,
+    cost: "lower-cost",
   },
 ];
 
-// OpenCode Zen models — curated June 2026
-// Model IDs match the API exactly (no prefix needed for API calls).
-// 8 models spanning free / lower-cost / premium across fast / smart / reasoning.
+// OpenCode Zen models — IDs match the API exactly (no prefix needed).
 export const OPENCODE_ZEN_MODELS: Model[] = [
-  // Fast / free
   {
     id: "deepseek-v4-flash-free",
     name: "DeepSeek V4 Flash Free",
@@ -202,7 +190,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "openai-compatible",
     contextLength: 1048576,
-    free: true,
+    cost: "free",
   },
   {
     id: "gpt-5-nano",
@@ -212,8 +200,8 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "openai-responses",
     contextLength: 400000,
+    cost: "lower-cost",
   },
-  // Fast / lower-cost
   {
     id: "claude-haiku-4-5",
     name: "Claude Haiku 4.5",
@@ -222,6 +210,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "anthropic",
     contextLength: 200000,
+    cost: "lower-cost",
   },
   {
     id: "gemini-3.5-flash",
@@ -231,8 +220,8 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "google",
     contextLength: 1048576,
+    cost: "lower-cost",
   },
-  // Smart / premium
   {
     id: "claude-sonnet-4-6",
     name: "Claude Sonnet 4.6",
@@ -241,6 +230,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "anthropic",
     contextLength: 1000000,
+    cost: "premium",
   },
   {
     id: "gpt-5.5",
@@ -250,8 +240,8 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "openai-responses",
     contextLength: 1050000,
+    cost: "premium",
   },
-  // Reasoning / premium
   {
     id: "claude-opus-4-8",
     name: "Claude Opus 4.8",
@@ -260,15 +250,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     provider: "opencode-zen",
     zenApiType: "anthropic",
     contextLength: 1000000,
-  },
-  {
-    id: "gpt-5.5-pro",
-    name: "GPT 5.5 Pro",
-    description: "OpenAI's latest high-capability reasoning model",
-    category: "reasoning",
-    provider: "opencode-zen",
-    zenApiType: "openai-responses",
-    contextLength: 1050000,
+    cost: "premium",
   },
 ];
 
@@ -320,4 +302,30 @@ export function getProviderDisplayName(provider: Provider): string {
       return exhaustiveProvider;
     }
   }
+}
+
+const COST_TIER_ORDER: Record<CostTier, number> = {
+  free: 0,
+  "lower-cost": 1,
+  premium: 2,
+};
+
+const CATEGORY_ORDER: Record<Model["category"], number> = {
+  fast: 0,
+  smart: 1,
+  reasoning: 2,
+};
+
+/**
+ * Sort models by cost tier (free → lower-cost → premium),
+ * then by category (fast → smart → reasoning), then alphabetically.
+ */
+export function sortModelsByCost<T extends Pick<Model, "name" | "category" | "cost">>(models: T[]): T[] {
+  return [...models].sort((a, b) => {
+    const costDiff = COST_TIER_ORDER[a.cost] - COST_TIER_ORDER[b.cost];
+    if (costDiff !== 0) return costDiff;
+    const catDiff = CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category];
+    if (catDiff !== 0) return catDiff;
+    return a.name.localeCompare(b.name);
+  });
 }

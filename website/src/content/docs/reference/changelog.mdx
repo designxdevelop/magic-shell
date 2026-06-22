@@ -3,6 +3,24 @@ title: Changelog
 description: Release notes and version history for Magic Shell
 ---
 
+## v0.2.24 - Cost-Tier System
+
+**Released:** June 22, 2026
+
+### What's New
+
+- **Cost tiers on every model**: Replaced the ambiguous `free?: boolean` flag on `Model` with an explicit `cost: CostTier` field — `"free" | "lower-cost" | "premium"`. The CLI and TUI previously had no way to distinguish cheaper paid models from expensive premium ones, so users could unknowingly select GPT 5.5 Pro at $30/$180 per 1M tokens for a one-line command translation
+- **Cost-aware model picker**: The TUI model selector (`showModelSelector`) and CLI `msh models` now sort models by cost tier (free → lower-cost → premium), then by category (fast → smart → reasoning), then alphabetically. Each entry shows a `[FREE]` / `[lower-cost]` / `[premium]` label so users can pick with intent
+- **Highest-cost models removed**: GPT 5.5 Pro (the only `premium` tier model in the registry) was removed from every provider — $30/$180 per 1M tokens is not appropriate for terminal command translation
+- **`sortModelsByCost()` helper**: New exported helper in `src/lib/models.ts` centralizes the cost-tier sort order used by both the CLI and TUI
+
+### Improvements
+
+- **Generated model catalog**: `website/scripts/generate-models-data.ts` now emits the `cost` field instead of `free`, and `ModelCatalog.astro` reads `cost` directly rather than inferring it from `free + category`. Catalog filters and badges now reflect the source-of-truth tier
+- **AGENTS.md type docs updated**: The `Model` interface example now shows the `cost: CostTier` field and the new `CostTier` type
+
+---
+
 ## v0.2.23 - Docs Theme, Provider Cards, and Model Catalog
 
 **Released:** June 22, 2026

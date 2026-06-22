@@ -55,7 +55,7 @@ const providers: ProviderCatalog[] = providerOrder.map((id) => ({
     category: m.category,
     provider: m.provider,
     contextLength: m.contextLength,
-    free: m.free ?? false,
+    cost: m.cost,
     zenApiType: (m as Model).zenApiType,
     disabled: (m as Model).disabled ?? false,
     disabledReason: (m as Model).disabledReason,

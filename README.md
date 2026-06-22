@@ -145,7 +145,7 @@ Launch with `mshell` for a full interactive experience.
 
 ### Keyboard Shortcuts
 
-Magic Shell follows OpenCode-style TUI shortcuts where they map cleanly:
+Magic Shell follows OpenCode-style TUI shortcuts where they fit cleanly:
 
 | Shortcut   | Action                 |
 | ---------- | ---------------------- |
@@ -154,23 +154,28 @@ Magic Shell follows OpenCode-style TUI shortcuts where they map cleanly:
 | `Ctrl+X T` | Change theme           |
 | `Ctrl+X Q` | Exit                   |
 | `Ctrl+T`   | Cycle thinking level   |
-| `Ctrl+C`   | Exit / Cancel active UI |
+| `Ctrl+C`   | Exit, or cancel/close the active dialog first |
 | `Ctrl+D`   | Exit                   |
-| `Esc`      | Close dialogs          |
+| `Esc`      | Close dialogs or cancel pending actions |
 
-### Direct Commands in TUI
+### Slash Commands in TUI
 
-You can also type commands directly in the TUI:
+Typing `/` opens a slash command menu under the prompt. Type to filter, use arrow keys to move, `Tab` to complete, and `Enter` to run the selected command.
+
+You can also submit slash commands directly:
 
 - `!help` or `/help` - Show help
-- `!model` or `/model` - Change model
-- `!provider` or `/provider` - Switch provider
+- `!model` or `/models` - Change model
+- `!provider` or `/providers` - Switch provider
+- `!theme` or `/themes` - Change theme
 - `!dry` or `/dry` - Toggle dry-run mode
+- `!thinking` or `/thinking` - Cycle thinking level
 - `!config` or `/config` - Show current configuration
 - `!history` or `/history` - Show command history
 - `!clear` or `/clear` - Clear output
+- `!exit` or `/exit` - Exit the TUI
 
-> **Note:** Both `!` and `/` prefixes work for all commands. Use whichever feels more natural!
+Both `!` and `/` prefixes work for these commands.
 
 ## AI Providers
 

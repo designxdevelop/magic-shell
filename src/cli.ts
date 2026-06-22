@@ -85,6 +85,11 @@ let inputHintText: TextRenderable;
 let helpBarText: TextRenderable;
 let modelSelector: SelectRenderable | null = null;
 let providerSelector: SelectRenderable | null = null;
+let slashCommandContainer: BoxRenderable | null = null;
+let slashCommandSelector: SelectRenderable | null = null;
+let slashCommandMatches: SlashCommand[] = [];
+let slashCommandSelectedIndex = 0;
+let slashCommandSyncQueued = false;
 
 // Pending command state (for the most recent assistant message awaiting confirmation)
 let pendingMessageId: string | null = null;
@@ -451,6 +456,7 @@ function createMainUI() {
 
   // Event handlers
   renderer.keyInput.on("keypress", handleKeypress);
+  renderer.keyInput.on("keypress", queueSlashCommandSync);
 
   inputField.focus();
 }
@@ -831,6 +837,17 @@ function refreshThemeColors() {
   if (inputHintText) {
     inputHintText.content = getInputHintContent();
   }
+  if (slashCommandContainer) {
+    slashCommandContainer.borderColor = theme.colors.border;
+    slashCommandContainer.backgroundColor = theme.colors.backgroundPanel;
+  }
+  if (slashCommandSelector) {
+    slashCommandSelector.selectedBackgroundColor = theme.colors.backgroundElement;
+    slashCommandSelector.textColor = theme.colors.text;
+    slashCommandSelector.selectedTextColor = theme.colors.primary;
+    slashCommandSelector.descriptionColor = theme.colors.textMuted;
+    slashCommandSelector.selectedDescriptionColor = theme.colors.textMuted;
+  }
 }
 
 async function handleInput(value: string) {
@@ -838,9 +855,13 @@ async function handleInput(value: string) {
   if (!input) return;
 
   inputField.setText("");
+  closeSlashCommandMenu();
 
   // Handle special commands (both ! and / prefixes)
-  if (input.startsWith("!") || input.startsWith("/")) {
+  if (input.startsWith("/") && await tryHandleSlashCommand(input)) {
+    return;
+  }
+  if (input.startsWith("!")) {
     await handleSpecialCommand(input);
     return;
   }
@@ -856,6 +877,20 @@ async function handleInput(value: string) {
 
   // Translate natural language to command
   await translateAndProcess(input);
+}
+
+async function tryHandleSlashCommand(input: string): Promise<boolean> {
+  if (!input.startsWith("/")) return false;
+
+  const slashBody = input.slice(1).trim();
+  if (!slashBody.includes(" ") && slashCommandMatches.length > 0) {
+    const selected = slashCommandMatches[Math.min(slashCommandSelectedIndex, slashCommandMatches.length - 1)];
+    await handleSpecialCommand(`/${selected.slash}`);
+    return true;
+  }
+
+  await handleSpecialCommand(input);
+  return true;
 }
 
 function isDirectCommand(input: string): boolean {
@@ -1082,6 +1117,7 @@ async function handleSpecialCommand(input: string) {
 }
 
 function clearChat() {
+  closeSlashCommandMenu();
   // Remove all messages from scroll box and array
   for (const msg of chatMessages) {
     chatScrollBox.remove(`msg-${msg.id}`);
@@ -1463,6 +1499,13 @@ interface PaletteCommand {
   action: () => void | Promise<void>;
 }
 
+interface SlashCommand {
+  slash: string;
+  name: string;
+  description: string;
+  action: () => void | Promise<void>;
+}
+
 function cycleThinkingLevel(): void {
   const levels: ThinkingLevel[] = ["low", "medium", "high", "off"];
   const currentIndex = levels.indexOf(config.thinkingLevel);
@@ -1571,6 +1614,172 @@ function getCommandPaletteOptions(): PaletteCommand[] {
   ];
 }
 
+function getSlashCommands(): SlashCommand[] {
+  return [
+    {
+      slash: "help",
+      name: "Help",
+      description: "Show commands and shortcuts",
+      action: () => showHelp(),
+    },
+    {
+      slash: "models",
+      name: "Models",
+      description: `Change model · ${currentModel.name}`,
+      action: () => showModelSelector(),
+    },
+    {
+      slash: "providers",
+      name: "Providers",
+      description: `Switch provider · ${getProviderDisplayName(config.provider)}`,
+      action: () => switchProvider(),
+    },
+    {
+      slash: "themes",
+      name: "Themes",
+      description: `Change theme · ${getTheme().name}`,
+      action: () => showThemeSelector(),
+    },
+    {
+      slash: "dry",
+      name: "Dry Run",
+      description: dryRunMode ? "Turn dry-run off" : "Turn dry-run on",
+      action: () => {
+        dryRunMode = !dryRunMode;
+        statusBarText.content = getStatusBarContent();
+        addSystemMessage(`Dry-run mode: ${dryRunMode ? "ON" : "OFF"}`);
+      },
+    },
+    {
+      slash: "thinking",
+      name: "Thinking",
+      description: `Cycle thinking level · ${config.thinkingLevel}`,
+      action: () => cycleThinkingLevel(),
+    },
+    {
+      slash: "config",
+      name: "Config",
+      description: "Show current configuration",
+      action: () => showConfig(),
+    },
+    {
+      slash: "history",
+      name: "History",
+      description: `${history.length} commands`,
+      action: () => showHistory(),
+    },
+    {
+      slash: "clear",
+      name: "Clear",
+      description: "Clear the chat history",
+      action: () => clearChat(),
+    },
+    {
+      slash: "exit",
+      name: "Exit",
+      description: "Close magic-shell",
+      action: () => {
+        renderer.destroy();
+        process.exit(0);
+      },
+    },
+  ];
+}
+
+function getSlashCommandMatches(inputText: string): SlashCommand[] {
+  if (!inputText.startsWith("/")) return [];
+
+  const slashBody = inputText.slice(1);
+  if (slashBody.includes(" ")) return [];
+
+  const query = slashBody.trim().toLowerCase();
+  return getSlashCommands().filter((cmd) => {
+    if (!query) return true;
+    return `${cmd.slash} ${cmd.name} ${cmd.description}`.toLowerCase().includes(query);
+  });
+}
+
+function ensureSlashCommandMenu(): void {
+  if (slashCommandContainer && slashCommandSelector) return;
+
+  slashCommandContainer = new BoxRenderable(renderer, {
+    id: "slash-command-container",
+    width: "100%",
+    border: true,
+    borderColor: getTheme().colors.border,
+    borderStyle: "single",
+    backgroundColor: getTheme().colors.backgroundPanel,
+    paddingLeft: 1,
+    paddingRight: 1,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginTop: 1,
+  });
+  inputContainer.add(slashCommandContainer);
+
+  slashCommandSelector = new SelectRenderable(renderer, {
+    id: "slash-command-select",
+    width: "100%",
+    height: 6,
+    options: [],
+    backgroundColor: "transparent",
+    focusedBackgroundColor: "transparent",
+    selectedBackgroundColor: getTheme().colors.backgroundElement,
+    textColor: getTheme().colors.text,
+    selectedTextColor: getTheme().colors.primary,
+    descriptionColor: getTheme().colors.textMuted,
+    selectedDescriptionColor: getTheme().colors.textMuted,
+    showDescription: true,
+    wrapSelection: true,
+  });
+  slashCommandContainer.add(slashCommandSelector);
+}
+
+function updateSlashCommandMenuOptions(): void {
+  if (!slashCommandSelector) return;
+  slashCommandSelector.options = slashCommandMatches.map((cmd) => ({
+    name: `/${cmd.slash}`,
+    description: cmd.description,
+    value: cmd,
+  }));
+  slashCommandSelector.height = Math.min(Math.max(slashCommandMatches.length, 1), 6);
+  slashCommandSelector.setSelectedIndex(slashCommandSelectedIndex);
+}
+
+function closeSlashCommandMenu(): void {
+  if (slashCommandContainer) {
+    inputContainer.remove("slash-command-container");
+    slashCommandContainer = null;
+    slashCommandSelector = null;
+  }
+  slashCommandMatches = [];
+  slashCommandSelectedIndex = 0;
+}
+
+function syncSlashCommandMenu(): void {
+  const inputText = inputField.editBuffer.getText();
+  const matches = getSlashCommandMatches(inputText);
+
+  if (matches.length === 0) {
+    closeSlashCommandMenu();
+    return;
+  }
+
+  ensureSlashCommandMenu();
+  slashCommandMatches = matches;
+  slashCommandSelectedIndex = Math.min(slashCommandSelectedIndex, slashCommandMatches.length - 1);
+  updateSlashCommandMenuOptions();
+}
+
+function queueSlashCommandSync(): void {
+  if (slashCommandSyncQueued) return;
+  slashCommandSyncQueued = true;
+  setTimeout(() => {
+    slashCommandSyncQueued = false;
+    if (inputField) syncSlashCommandMenu();
+  }, 0);
+}
+
 function showCommandPalette() {
   if (commandPalette) {
     return;
@@ -1669,6 +1878,25 @@ function closeCommandPalette() {
 function handleKeypress(key: KeyEvent) {
   const commands = getCommandPaletteOptions();
 
+  if (slashCommandMatches.length > 0) {
+    if (key.name === "up") {
+      slashCommandSelectedIndex = slashCommandSelectedIndex === 0 ? slashCommandMatches.length - 1 : slashCommandSelectedIndex - 1;
+      updateSlashCommandMenuOptions();
+      return;
+    }
+    if (key.name === "down") {
+      slashCommandSelectedIndex = (slashCommandSelectedIndex + 1) % slashCommandMatches.length;
+      updateSlashCommandMenuOptions();
+      return;
+    }
+    if (key.name === "tab") {
+      inputField.setText(`/${slashCommandMatches[slashCommandSelectedIndex].slash}`);
+      syncSlashCommandMenu();
+      inputField.focus();
+      return;
+    }
+  }
+
   if (key.ctrl && key.name === "p") {
     showCommandPalette();
     return;
@@ -1720,6 +1948,10 @@ function handleKeypress(key: KeyEvent) {
       closeCommandPalette();
       return;
     }
+    if (slashCommandMatches.length > 0) {
+      closeSlashCommandMenu();
+      return;
+    }
     if (modelSelector) {
       renderer.root.remove("model-selector-container");
       modelSelector = null;
@@ -1747,6 +1979,10 @@ function handleKeypress(key: KeyEvent) {
     chordMode = "none";
     if (commandPalette) {
       closeCommandPalette();
+      return;
+    }
+    if (slashCommandMatches.length > 0) {
+      closeSlashCommandMenu();
       return;
     }
     if (modelSelector) {

@@ -3,9 +3,9 @@ title: TUI Mode
 description: Magic Shell's full interactive terminal interface with themes, history, and keyboard shortcuts.
 ---
 
-import { Aside, Steps } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
 
-Magic Shell's TUI mode provides a rich interactive experience for translating and executing commands.
+Magic Shell's TUI mode provides an interactive command workspace for translating and executing commands.
 
 ```bash
 mshell
@@ -16,11 +16,9 @@ mshell
 - **Header**: Current model, provider, and mode indicators
 - **Output area**: Command translations, safety analysis, and execution results
 - **Input area**: Multi-line prompt for natural-language requests or slash commands
-- **Status bar**: Current provider, model, safety level, thinking level, and mode
+- **Status bar**: Provider, model, safety level, thinking level, and mode
 
 ## Keyboard Shortcuts
-
-Magic Shell follows OpenCode-style TUI shortcuts where they make sense for this app:
 
 | Shortcut | Action |
 | --- | --- |
@@ -35,7 +33,9 @@ Magic Shell follows OpenCode-style TUI shortcuts where they make sense for this 
 
 ## Slash Commands
 
-Use `!` or `/` commands directly in the input:
+Typing `/` opens a slash command menu under the prompt. Type to filter, use arrow keys to move, `Tab` to complete, and `Enter` to run the selected command.
+
+You can also submit slash commands directly:
 
 | Command | Action |
 | --- | --- |
@@ -44,9 +44,11 @@ Use `!` or `/` commands directly in the input:
 | `!provider` or `/providers` | Switch provider |
 | `!theme` or `/themes` | Change theme |
 | `!dry` or `/dry` | Toggle dry-run |
+| `!thinking` or `/thinking` | Cycle thinking level |
 | `!config` or `/config` | Show config |
 | `!history` or `/history` | Show history |
 | `!clear` or `/clear` | Clear output |
+| `!exit` or `/exit` | Exit |
 
 ## Dry-Run Mode
 

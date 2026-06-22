@@ -891,6 +891,21 @@ async function executeSelectedSlashCommand(): Promise<void> {
 async function tryHandleSlashCommand(input: string): Promise<boolean> {
   if (!input.startsWith("/")) return false;
 
+  const slashBody = input.slice(1).trim().toLowerCase()
+
+  if (!slashBody.includes(" ") && slashCommandMatches.length > 0) {
+    const selected = slashCommandMatches[Math.min(slashCommandSelectedIndex, slashCommandMatches.length - 1)]
+    const exactMatch = slashCommandMatches.find((cmd) => cmd.slash === slashBody)
+    await (exactMatch ?? selected).action()
+    return true
+  }
+
+  const exactCommand = getSlashCommands().find((cmd) => cmd.slash === slashBody)
+  if (exactCommand) {
+    await exactCommand.action()
+    return true
+  }
+
   await handleSpecialCommand(input);
   return true;
 }
@@ -1491,6 +1506,7 @@ function showThemeSelector() {
 // Modal list state (shared by command palette and slash commands)
 const MODAL_LIST_WIDTH = 55;
 const MODAL_LIST_MAX_ITEMS = 12;
+const MODAL_LIST_FRAME_HEIGHT = 4;
 
 interface ModalListHandle {
   containerId: string;
@@ -1729,7 +1745,7 @@ function openModalList(config: {
   const left = Math.max(2, Math.floor((termWidth - width) / 2));
   const itemCount = Math.max(config.options.length, 1);
   const listHeight = Math.min(itemCount + 2, MODAL_LIST_MAX_ITEMS);
-  const containerHeight = listHeight + 2;
+  const containerHeight = listHeight + MODAL_LIST_FRAME_HEIGHT;
 
   const container = new BoxRenderable(renderer, {
     id: config.containerId,
@@ -1775,7 +1791,7 @@ function openModalList(config: {
       const newListHeight = Math.min(count + 2, MODAL_LIST_MAX_ITEMS);
       selector.options = options;
       selector.height = newListHeight;
-      container.height = newListHeight + 2;
+      container.height = newListHeight + MODAL_LIST_FRAME_HEIGHT;
       selector.setSelectedIndex(Math.min(selectedIndex, Math.max(options.length - 1, 0)));
     },
     setSelectedIndex(index: number) {
@@ -1936,10 +1952,6 @@ function handleKeypress(key: KeyEvent) {
       inputField.setText(`/${slashCommandMatches[slashCommandSelectedIndex].slash}`);
       syncSlashCommandMenu();
       inputField.focus();
-      return;
-    }
-    if (key.name === "return" && !key.shift && !key.ctrl && !key.meta) {
-      void executeSelectedSlashCommand();
       return;
     }
   }

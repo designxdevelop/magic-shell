@@ -145,22 +145,17 @@ Launch with `mshell` for a full interactive experience.
 
 ### Keyboard Shortcuts
 
-All shortcuts use the `Ctrl+X` chord (press Ctrl+X, then the key):
+Magic Shell follows OpenCode-style TUI shortcuts where they map cleanly:
 
 | Shortcut   | Action                 |
 | ---------- | ---------------------- |
-| `Ctrl+X P` | Open command palette   |
+| `Ctrl+P`   | Open Commands          |
 | `Ctrl+X M` | Change model           |
-| `Ctrl+X S` | Switch provider        |
-| `Ctrl+X D` | Toggle dry-run mode    |
 | `Ctrl+X T` | Change theme           |
-| `Ctrl+X R` | Toggle project context |
-| `Ctrl+X H` | Show history           |
-| `Ctrl+X C` | Show config            |
-| `Ctrl+X L` | Clear output           |
-| `Ctrl+X ?` | Show help              |
 | `Ctrl+X Q` | Exit                   |
-| `Ctrl+C`   | Exit / Cancel          |
+| `Ctrl+T`   | Cycle thinking level   |
+| `Ctrl+C`   | Exit / Cancel active UI |
+| `Ctrl+D`   | Exit                   |
 | `Esc`      | Close dialogs          |
 
 ### Direct Commands in TUI

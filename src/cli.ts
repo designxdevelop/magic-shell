@@ -417,13 +417,14 @@ function createMainUI() {
     focusedBackgroundColor: "transparent",
     textColor: theme.colors.text,
     keyBindings: [
-      // Override defaults: Enter submits
+      // Match OpenCode: Enter submits; shifted/modified Enter inserts a newline.
       { name: "return", action: "submit" },
       { name: "linefeed", action: "submit" },
-      { name: "return", shift: true, action: "submit" },
-      { name: "linefeed", shift: true, action: "submit" },
-      // Keep meta+return as submit too for muscle memory
-      { name: "return", meta: true, action: "submit" },
+      { name: "return", shift: true, action: "newline" },
+      { name: "linefeed", shift: true, action: "newline" },
+      { name: "return", ctrl: true, action: "newline" },
+      { name: "return", meta: true, action: "newline" },
+      { name: "j", ctrl: true, action: "newline" },
     ],
     onSubmit: () => {
       const value = inputField.editBuffer.getText();
@@ -473,7 +474,7 @@ function getHelpBarContent(): StyledText {
   if (awaitingConfirmation) {
     return t`${fg(theme.colors.warning)(">>> Cmd+Enter or Enter to execute <<<")} ${fg(theme.colors.textMuted)("|")} ${fg(theme.colors.error)("Esc")}${fg(theme.colors.textMuted)(" Cancel")} ${fg(theme.colors.primary)("e")}${fg(theme.colors.textMuted)(" Edit")} ${fg(theme.colors.primary)("c")}${fg(theme.colors.textMuted)(" Copy")}`;
   }
-  return t`${fg(theme.colors.primary)("Ctrl+X P")}${fg(theme.colors.textMuted)(" Commands")}  ${fg(theme.colors.primary)("Ctrl+Y")}${fg(theme.colors.textMuted)(" Safety")}  ${fg(theme.colors.primary)("Ctrl+K")}${fg(theme.colors.textMuted)(" Think")}  ${fg(theme.colors.primary)("Ctrl+Z")}${fg(theme.colors.textMuted)(" Exit")}`;
+  return t`${fg(theme.colors.primary)("Ctrl+P")}${fg(theme.colors.textMuted)(" Commands")}  ${fg(theme.colors.primary)("Ctrl+T")}${fg(theme.colors.textMuted)(" Think")}  ${fg(theme.colors.primary)("Ctrl+C")}${fg(theme.colors.textMuted)(" Exit")}  ${fg(theme.colors.primary)("Esc")}${fg(theme.colors.textMuted)(" Cancel")}`;
 }
 
 function getInputHintContent(): StyledText {
@@ -483,7 +484,7 @@ function getInputHintContent(): StyledText {
 
 function getWelcomeMessage(): string {
   const providerName = getProviderDisplayName(config.provider);
-  return `Ready. Using ${providerName}.\nType what you want to do, or press Ctrl+X P for command palette.`;
+  return `Ready. Using ${providerName}.\nType what you want to do, or press Ctrl+P for Commands.`;
 }
 
 function addSystemMessage(content: string): ChatMessage {
@@ -1038,10 +1039,16 @@ async function handleSpecialCommand(input: string) {
       showHelp();
       break;
     case "model":
+    case "models":
       showModelSelector();
       break;
     case "provider":
+    case "providers":
       await switchProvider();
+      break;
+    case "theme":
+    case "themes":
+      showThemeSelector();
       break;
     case "dry":
       dryRunMode = !dryRunMode;
@@ -1061,6 +1068,10 @@ async function handleSpecialCommand(input: string) {
     case "clear":
       clearChat();
       break;
+    case "exit":
+    case "quit":
+      renderer.destroy();
+      process.exit(0);
     default:
       // Try to execute as shell command
       if (cmd) {
@@ -1081,25 +1092,25 @@ function clearChat() {
 }
 
 function showHelp() {
-  const helpText = `Direct Shortcuts:
-Ctrl+Y  Cycle safety level (strict/moderate/relaxed)
-Ctrl+K  Cycle thinking level (low/medium/high/off)
-Ctrl+Z  Exit magic-shell
-Ctrl+C  Cancel / Close popup
+  const helpText = `Shortcuts:
+Ctrl+P  Commands
+Ctrl+T  Cycle thinking level (low/medium/high/off)
+Ctrl+C  Exit magic-shell
+Ctrl+D  Exit magic-shell
+Esc     Cancel / Close popup
+Ctrl+C  Close popup/cancel first when active
 
-Chord Shortcuts (Ctrl+X then...):
-P  Command palette    M  Change model
-S  Switch provider    D  Toggle dry-run
-T  Change theme       R  Toggle repo context
-H  Show history       L  Clear chat
-C  Show config        K  Thinking level
-?  This help
+OpenCode Leader (Ctrl+X then...):
+M  Change model
+T  Change theme
+Q  Exit
 
 Commands (type ! or / followed by):
-help      Show this help      model     Change model
-provider  Switch provider     dry       Toggle dry-run
-thinking  Cycle thinking      config    Show configuration
-history   Show history        clear     Clear chat
+help      Show this help      models    Change model
+provider  Switch provider     themes    Change theme
+dry       Toggle dry-run      thinking  Cycle thinking
+config    Show config         history   Show history
+clear     Clear chat          exit      Exit
 
 Safety Levels:
 - strict:   Confirm ALL potentially dangerous commands
@@ -1114,9 +1125,9 @@ Thinking Levels:
 
 Tips:
 - Type naturally: "list all files" -> ls -la
-- Use ! or / commands: !help or /help
+- Use ! or / commands: !help, /help, or /models
 - Reference history: "do that again", "undo"
-- Enable repo context to use project scripts (Ctrl+X R)`;
+- Enable repo context from Commands to use project scripts`;
 
   addSystemMessage(helpText);
 }
@@ -1441,13 +1452,14 @@ function showThemeSelector() {
 
 // Command palette state
 let commandPalette: SelectRenderable | null = null;
-let chordMode: "none" | "ctrl-x" = "none"; // For Ctrl+X chord sequences
+let commandPaletteQuery = "";
+let chordMode: "none" | "ctrl-x" = "none";
 
 interface PaletteCommand {
   name: string;
   description: string;
-  key: string; // Single key shortcut when palette is open
-  chord?: string; // Chord shortcut (e.g., "p" for Ctrl+X P)
+  shortcut?: string;
+  chord?: string;
   action: () => void | Promise<void>;
 }
 
@@ -1464,31 +1476,20 @@ function cycleThinkingLevel(): void {
 function getCommandPaletteOptions(): PaletteCommand[] {
   return [
     {
-      name: "Command Palette",
-      description: "Open this menu",
-      key: "p",
-      chord: "p",
-      action: () => {}, // Already open
-    },
-    {
       name: "Change Model",
       description: `Current: ${currentModel.name}`,
-      key: "m",
+      shortcut: "Ctrl+X M",
       chord: "m",
       action: () => showModelSelector(),
     },
     {
       name: "Switch Provider",
       description: `Current: ${getProviderDisplayName(config.provider)}`,
-      key: "s",
-      chord: "s",
       action: () => switchProvider(),
     },
     {
       name: "Toggle Dry Run",
       description: dryRunMode ? "Currently ON" : "Currently OFF",
-      key: "d",
-      chord: "d",
       action: () => {
         dryRunMode = !dryRunMode;
         statusBarText.content = getStatusBarContent();
@@ -1498,8 +1499,6 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     {
       name: "Cycle Safety Level",
       description: `Current: ${config.safetyLevel}`,
-      key: "y",
-      chord: "y",
       action: () => {
         // Cycle: moderate -> strict -> relaxed -> moderate
         const levels: Array<"strict" | "moderate" | "relaxed"> = ["moderate", "strict", "relaxed"];
@@ -1519,15 +1518,12 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     {
       name: "Cycle Thinking Level",
       description: `Current: ${config.thinkingLevel}`,
-      key: "k",
-      chord: "k",
+      shortcut: "Ctrl+T",
       action: () => cycleThinkingLevel(),
     },
     {
       name: "Toggle Project Context",
       description: config.repoContext ? "Currently ON (sends script names to AI)" : "Currently OFF",
-      key: "r",
-      chord: "r",
       action: () => {
         config.repoContext = !config.repoContext;
         saveConfig(config);
@@ -1538,42 +1534,34 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     {
       name: "Show Config",
       description: "View current configuration",
-      key: "c",
-      chord: "c",
       action: () => showConfig(),
     },
     {
       name: "Show History",
       description: `${history.length} commands`,
-      key: "h",
-      chord: "h",
       action: () => showHistory(),
     },
     {
       name: "Change Theme",
       description: `Current: ${getTheme().name}`,
-      key: "t",
+      shortcut: "Ctrl+X T",
       chord: "t",
       action: () => showThemeSelector(),
     },
     {
       name: "Clear Chat",
       description: "Clear the chat history",
-      key: "l",
-      chord: "l",
       action: () => clearChat(),
     },
     {
       name: "Show Help",
       description: "View all commands and shortcuts",
-      key: "?",
-      chord: "?",
       action: () => showHelp(),
     },
     {
       name: "Exit",
       description: "Close magic-shell",
-      key: "q",
+      shortcut: "Ctrl+D / Ctrl+X Q",
       chord: "q",
       action: () => {
         renderer.destroy();
@@ -1585,10 +1573,10 @@ function getCommandPaletteOptions(): PaletteCommand[] {
 
 function showCommandPalette() {
   if (commandPalette) {
-    // Already open - don't create another instance
     return;
   }
 
+  commandPaletteQuery = "";
   const commands = getCommandPaletteOptions();
 
   // Center horizontally: (terminal width - container width) / 2
@@ -1607,24 +1595,18 @@ function showCommandPalette() {
     border: true,
     borderColor: "#60a5fa",
     borderStyle: "single",
-    title: "Command Palette (Ctrl+X ...)",
+    title: "Commands",
     titleAlignment: "center",
     zIndex: 200,
     padding: 1,
   });
   renderer.root.add(container);
 
-  const options: SelectOption[] = commands.map((cmd) => ({
-    name: cmd.chord ? `[${cmd.key}] ${cmd.name}` : `[${cmd.key}] ${cmd.name}`,
-    description: cmd.description,
-    value: cmd,
-  }));
-
   commandPalette = new SelectRenderable(renderer, {
     id: "command-palette-select",
     width: "100%",
     height: Math.min(commands.length + 2, 12),
-    options,
+    options: getCommandPaletteSelectOptions(),
     backgroundColor: "transparent",
     focusedBackgroundColor: "transparent",
     selectedBackgroundColor: "#334155",
@@ -1638,6 +1620,7 @@ function showCommandPalette() {
   container.add(commandPalette);
 
   commandPalette.on(SelectRenderableEvents.ITEM_SELECTED, async (_: number, option: SelectOption) => {
+    if (!option.value) return;
     const cmd = option.value as PaletteCommand;
     closeCommandPalette();
     await cmd.action();
@@ -1646,10 +1629,39 @@ function showCommandPalette() {
   commandPalette.focus();
 }
 
+function getCommandPaletteSelectOptions(): SelectOption[] {
+  const query = commandPaletteQuery.toLowerCase();
+  const commands = getCommandPaletteOptions().filter((cmd) => {
+    if (!query) return true;
+    return `${cmd.name} ${cmd.description} ${cmd.shortcut ?? ""}`.toLowerCase().includes(query);
+  });
+
+  if (commands.length === 0) {
+    return [{
+      name: "No commands found",
+      description: commandPaletteQuery,
+      value: null,
+    }];
+  }
+
+  return commands.map((cmd) => ({
+    name: cmd.name,
+    description: cmd.shortcut ? `${cmd.description} · ${cmd.shortcut}` : cmd.description,
+    value: cmd,
+  }));
+}
+
+function updateCommandPaletteOptions(): void {
+  if (!commandPalette) return;
+  commandPalette.options = getCommandPaletteSelectOptions();
+  commandPalette.setSelectedIndex(0);
+}
+
 function closeCommandPalette() {
   if (commandPalette) {
     renderer.root.remove("command-palette-container");
     commandPalette = null;
+    commandPaletteQuery = "";
     inputField?.focus();
   }
 }
@@ -1657,73 +1669,52 @@ function closeCommandPalette() {
 function handleKeypress(key: KeyEvent) {
   const commands = getCommandPaletteOptions();
 
-  // Handle Ctrl+Y - direct safety level toggle (no chord needed)
-  if (key.ctrl && key.name === "y") {
-    // Cycle: moderate -> strict -> relaxed -> moderate
-    const levels: Array<"strict" | "moderate" | "relaxed"> = ["moderate", "strict", "relaxed"];
-    const currentIndex = levels.indexOf(config.safetyLevel);
-    const nextIndex = (currentIndex + 1) % levels.length;
-    config.safetyLevel = levels[nextIndex];
-    saveConfig(config);
-    statusBarText.content = getStatusBarContent();
-    const descriptions: Record<string, string> = {
-      strict: "confirms ALL potentially dangerous commands",
-      moderate: "confirms high/critical severity commands",
-      relaxed: "only confirms critical commands",
-    };
-    addSystemMessage(`Safety level: ${config.safetyLevel} (${descriptions[config.safetyLevel]})`);
+  if (key.ctrl && key.name === "p") {
+    showCommandPalette();
     return;
   }
 
-  if (key.ctrl && key.name === "k") {
+  if (key.ctrl && key.name === "t") {
     cycleThinkingLevel();
     return;
   }
 
-  // Handle Ctrl+Z - exit the TUI
-  if (key.ctrl && key.name === "z") {
+  if (key.ctrl && key.name === "d") {
     renderer.destroy();
     process.exit(0);
   }
 
-  // Handle Ctrl+X chord mode
   if (key.ctrl && key.name === "x") {
     chordMode = "ctrl-x";
-    // Brief visual feedback could go here
     return;
   }
 
-  // If in chord mode, handle the second key
   if (chordMode === "ctrl-x") {
     chordMode = "none";
-
-    // Find command matching this chord
     const keyName = key.name || key.sequence;
     const cmd = commands.find((c) => c.chord === keyName);
     if (cmd) {
-      if (cmd.key === "p") {
-        showCommandPalette();
-      } else {
-        cmd.action();
-      }
-      return;
-    }
-    // Invalid chord, ignore
-    return;
-  }
-
-  // Handle single-key shortcuts when palette is open
-  if (commandPalette) {
-    const keyName = key.name || key.sequence;
-    const cmd = commands.find((c) => c.key === keyName);
-    if (cmd) {
-      closeCommandPalette();
       cmd.action();
       return;
     }
+    return;
   }
 
-  // Ctrl+C - close popups/cancel operations, but don't exit
+  if (commandPalette) {
+    if (key.name === "backspace" || key.name === "delete") {
+      commandPaletteQuery = commandPaletteQuery.slice(0, -1);
+      updateCommandPaletteOptions();
+      return;
+    }
+    const sequence = key.sequence ?? "";
+    if (!key.ctrl && !key.meta && sequence.length === 1 && sequence >= " ") {
+      commandPaletteQuery += sequence;
+      updateCommandPaletteOptions();
+      return;
+    }
+  }
+
+  // Ctrl+C - close popups/cancel operations first, then exit like a standard TUI.
   if (key.ctrl && key.name === "c") {
     if (commandPalette) {
       closeCommandPalette();
@@ -1747,14 +1738,8 @@ function handleKeypress(key: KeyEvent) {
       inputField.focus();
       return;
     }
-    // During initial setup, allow Ctrl+C to exit
-    if (providerSelector) {
-      renderer.destroy();
-      process.exit(0);
-    }
-    // Otherwise just show hint about how to exit
-    addSystemMessage("Press Ctrl+Z to exit.");
-    return;
+    renderer.destroy();
+    process.exit(0);
   }
 
   // Escape to cancel/close

@@ -74,7 +74,7 @@ const faqSchema = {
       "name": "How do I switch between different AI models?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "In CLI mode, use 'msh --model <model-id>' to set the default model. In TUI mode, press Ctrl+X M to open the model selector and switch between available models on the fly. You can also switch providers with 'msh --provider <name>' or Ctrl+X S in TUI mode. Run 'msh --models' to see all available models."
+        "text": "In CLI mode, use 'msh --model <model-id>' to set the default model. In TUI mode, press Ctrl+X M or type /models to switch models. You can also switch providers with 'msh --provider <name>', or press Ctrl+P and choose Switch Provider in TUI mode. Run 'msh --models' to see all available models."
       }
     },
     {
@@ -82,7 +82,7 @@ const faqSchema = {
       "name": "What are the keyboard shortcuts in TUI mode?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "All shortcuts use Ctrl+X chord: Ctrl+X P (command palette), Ctrl+X M (change model), Ctrl+X S (switch provider), Ctrl+X D (toggle dry-run), Ctrl+X T (change theme), Ctrl+X R (toggle project context), Ctrl+X H (show history), Ctrl+X C (show config), Ctrl+X L (clear output), Ctrl+X ? (help), Ctrl+X Q (exit). Press Ctrl+C to exit or cancel, and Esc to close dialogs."
+        "text": "Magic Shell follows OpenCode-style TUI shortcuts where they fit: Ctrl+P opens Commands, Ctrl+X M changes model, Ctrl+X T changes theme, Ctrl+X Q exits, Ctrl+T cycles thinking level, Ctrl+C exits or cancels the active dialog first, Ctrl+D exits, and Esc closes dialogs."
       }
     }
   ]

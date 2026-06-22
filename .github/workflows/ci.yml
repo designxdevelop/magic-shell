@@ -34,6 +34,32 @@ jobs:
           test -f dist/cli.js || exit 1
         shell: bash
 
+  website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
   # Auto-create version tag when package.json version changes on main
   auto-tag:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

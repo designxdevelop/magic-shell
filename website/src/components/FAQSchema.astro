@@ -1,6 +1,5 @@
 ---
-// FAQ Schema for Magic Shell
-const baseUrl = 'https://mshell.dev';
+import JsonLd from "./JsonLd.astro"
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -90,4 +89,4 @@ const faqSchema = {
 };
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+<JsonLd data={faqSchema} />

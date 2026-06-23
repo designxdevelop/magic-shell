@@ -36,7 +36,12 @@ import { loadConfig, saveConfig, getApiKey, setApiKey, loadHistory, addCustomMod
 import { analyzeCommand } from "./lib/safety";
 import { translateToCommand, getShellInfo } from "./lib/api";
 import { getAnsiColors, getTheme, setTheme, themes, themeNames, loadTheme } from "./lib/theme";
-import { checkForUpdates, dismissUpdate, getCurrentVersion, forceCheckForUpdates } from "./lib/update-checker";
+import {
+  getCurrentVersion,
+  processUpdateCheck,
+  formatUpdateBannerLines,
+  shouldRunStartupUpdateCheck,
+} from "./lib/update-checker";
 import { formatExecutedCommand } from "./lib/format";
 
 // Load theme from config
@@ -83,6 +88,10 @@ ${colors.bold}USAGE${colors.reset}
   msh --safety <level>     Set safety level (strict, moderate, relaxed)
   msh --version            Show version
   msh --check-update       Check for updates
+  msh --auto-update        Enable automatic updates
+  msh --no-auto-update     Disable automatic updates
+  msh --no-update-check    Disable update checking
+  msh --enable-update-check Enable update checking
   msh --help               Show this help
 
 ${colors.bold}TUI MODE${colors.reset}
@@ -589,29 +598,57 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
   }
 }
 
-// Show update notification if available (non-blocking)
-async function showUpdateNotification() {
+// Show update notification or auto-update if configured (non-blocking)
+async function handleStartupUpdateCheck(): Promise<void> {
   try {
-    const update = await checkForUpdates();
-    if (update?.hasUpdate) {
-      console.error(`${colors.cyan}┌─────────────────────────────────────────────────┐${colors.reset}`);
-      console.error(
-        `${colors.cyan}│${colors.reset}  ${colors.bold}Update available!${colors.reset} ${colors.dim}${update.currentVersion}${colors.reset} → ${colors.green}${update.latestVersion}${colors.reset}          ${colors.cyan}│${colors.reset}`,
-      );
-      console.error(`${colors.cyan}│${colors.reset}  Run: ${colors.yellow}${update.updateCommand}${colors.reset}   ${colors.cyan}│${colors.reset}`);
-      console.error(`${colors.cyan}└─────────────────────────────────────────────────┘${colors.reset}`);
-      console.error();
+    const config = loadConfig();
+    const result = await processUpdateCheck({
+      checkForUpdates: config.checkForUpdates !== false,
+      autoUpdate: config.autoUpdate === true,
+    });
+
+    switch (result.action) {
+      case "notified":
+        printUpdateBanner(result.update);
+        break;
+      case "updated":
+        if (result.success) {
+          console.error(
+            `${colors.green}✓ Updated to v${result.update.latestVersion}${colors.reset} Restart your shell or run msh again.`,
+          );
+          console.error();
+        } else {
+          console.error(`${colors.yellow}Auto-update failed:${colors.reset} ${result.output}`);
+          printUpdateBanner(result.update);
+        }
+        break;
     }
   } catch {
     // Silently ignore update check errors
   }
 }
 
+function printUpdateBanner(update: { currentVersion: string; latestVersion: string | null; updateCommand: string }): void {
+  const lines = formatUpdateBannerLines({
+    hasUpdate: true,
+    currentVersion: update.currentVersion,
+    latestVersion: update.latestVersion,
+    updateCommand: update.updateCommand,
+  });
+
+  console.error(`${colors.cyan}┌─────────────────────────────────────────────────┐${colors.reset}`);
+  for (const line of lines) {
+    console.error(`${colors.cyan}│${colors.reset}  ${line.padEnd(47)} ${colors.cyan}│${colors.reset}`);
+  }
+  console.error(`${colors.cyan}└─────────────────────────────────────────────────┘${colors.reset}`);
+  console.error();
+}
+
 async function main() {
   const args = process.argv.slice(2);
 
   // Check for updates in background (don't block)
-  const updatePromise = args.length > 0 && !args[0].startsWith("-i") ? showUpdateNotification() : Promise.resolve();
+  const updatePromise = shouldRunStartupUpdateCheck(args) ? handleStartupUpdateCheck() : Promise.resolve();
 
   if (args.length === 0) {
     // No args - show help pointing to mshell
@@ -639,13 +676,70 @@ async function main() {
   }
 
   if (args[0] === "--check-update") {
-    const update = await forceCheckForUpdates();
-    if (update?.hasUpdate) {
-      console.log(`${colors.green}Update available!${colors.reset} ${update.currentVersion} → ${update.latestVersion}`);
-      console.log(`Run: ${colors.cyan}${update.updateCommand}${colors.reset}`);
-    } else {
-      console.log(`${colors.green}✓ You're running the latest version (${getCurrentVersion()})${colors.reset}`);
+    const config = loadConfig();
+    const result = await processUpdateCheck({
+      checkForUpdates: true,
+      autoUpdate: config.autoUpdate === true,
+      force: true,
+    });
+
+    if (result.action === "up-to-date") {
+      console.log(`${colors.green}✓ You're running the latest version (${result.currentVersion})${colors.reset}`);
+      return;
     }
+
+    if (result.action === "updated") {
+      if (result.success) {
+        console.log(`${colors.green}✓ Updated to v${result.update.latestVersion}${colors.reset}`);
+      } else {
+        console.log(`${colors.yellow}Update failed:${colors.reset} ${result.output}`);
+        console.log(`Try manually: ${colors.cyan}${result.update.updateCommand}${colors.reset}`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    if (result.action === "notified") {
+      console.log(`${colors.green}Update available!${colors.reset} ${result.update.currentVersion} → ${result.update.latestVersion}`);
+      console.log(`Run: ${colors.cyan}${result.update.updateCommand}${colors.reset}`);
+      console.log(`Or enable auto-update: ${colors.cyan}msh --auto-update${colors.reset}`);
+      return;
+    }
+
+    console.log(`${colors.yellow}Could not check for updates.${colors.reset}`);
+    return;
+  }
+
+  if (args[0] === "--auto-update") {
+    const config = loadConfig();
+    config.autoUpdate = true;
+    config.checkForUpdates = true;
+    saveConfig(config);
+    console.log(`${colors.success}✓ Auto-update enabled${colors.reset}`);
+    return;
+  }
+
+  if (args[0] === "--no-auto-update") {
+    const config = loadConfig();
+    config.autoUpdate = false;
+    saveConfig(config);
+    console.log(`${colors.success}✓ Auto-update disabled${colors.reset}`);
+    return;
+  }
+
+  if (args[0] === "--no-update-check") {
+    const config = loadConfig();
+    config.checkForUpdates = false;
+    saveConfig(config);
+    console.log(`${colors.success}✓ Update checking disabled${colors.reset}`);
+    return;
+  }
+
+  if (args[0] === "--enable-update-check") {
+    const config = loadConfig();
+    config.checkForUpdates = true;
+    saveConfig(config);
+    console.log(`${colors.success}✓ Update checking enabled${colors.reset}`);
     return;
   }
 

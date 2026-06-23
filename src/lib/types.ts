@@ -67,6 +67,10 @@ export interface Config {
   theme?: string;
   /** Enable project context detection (opt-in for privacy). Sends script names from package.json, Makefile, etc to AI. */
   repoContext?: boolean;
+  /** Check npm for new versions on startup (default: true). */
+  checkForUpdates?: boolean;
+  /** Automatically install updates when available (default: false). */
+  autoUpdate?: boolean;
   customModels?: CustomModel[];
 }
 

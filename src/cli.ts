@@ -43,6 +43,11 @@ import { loadConfig, saveConfig, getApiKey, setApiKey, loadHistory, addToHistory
 import { analyzeCommand, getSeverityColor } from "./lib/safety";
 import { translateToCommand, getShellInfo } from "./lib/api";
 import { getTheme, setTheme, themes, themeNames, loadTheme } from "./lib/theme";
+import {
+  getCurrentVersion,
+  processUpdateCheck,
+  formatUpdateMessageForTui,
+} from "./lib/update-checker";
 
 // Global state
 let renderer: CliRenderer;
@@ -349,6 +354,7 @@ function createMainUI() {
 
   // Add welcome message
   addSystemMessage(getWelcomeMessage());
+  void handleStartupUpdateCheck();
 
   // === Input Container (at bottom) - OpenCode style ===
   inputContainer = new BoxRenderable(renderer, {
@@ -451,6 +457,79 @@ function getInputHintContent(): StyledText {
 function getWelcomeMessage(): string {
   const providerName = getProviderDisplayName(config.provider);
   return `Ready. Using ${providerName}.\nType what you want to do, or press Ctrl+P for Commands.`;
+}
+
+async function handleStartupUpdateCheck(): Promise<void> {
+  try {
+    const result = await processUpdateCheck({
+      checkForUpdates: config.checkForUpdates !== false,
+      autoUpdate: config.autoUpdate === true,
+    });
+
+    switch (result.action) {
+      case "notified":
+        addSystemMessage(formatUpdateMessageForTui(result.update, false));
+        break;
+      case "updated":
+        if (result.success) {
+          addSystemMessage(
+            `Updated to v${result.update.latestVersion}. Restart mshell to use the new version.`,
+          );
+        } else {
+          addSystemMessage(
+            `Auto-update failed:\n${result.output}\nTry manually: ${result.update.updateCommand}`,
+          );
+        }
+        break;
+    }
+  } catch {
+    // Silently ignore update check errors
+  }
+}
+
+async function runManualUpdate(): Promise<void> {
+  addSystemMessage("Checking for updates...");
+
+  try {
+    const result = await processUpdateCheck({
+      checkForUpdates: true,
+      autoUpdate: false,
+      force: true,
+      install: true,
+    });
+
+    switch (result.action) {
+      case "up-to-date":
+        addSystemMessage(`Already on the latest version (${result.currentVersion}).`);
+        break;
+      case "updated":
+        if (result.success) {
+          addSystemMessage(
+            `Updated to v${result.update.latestVersion}. Restart mshell to use the new version.`,
+          );
+        } else {
+          addSystemMessage(
+            `Update failed:\n${result.output}\nTry manually: ${result.update.updateCommand}`,
+          );
+        }
+        break;
+      case "none":
+        addSystemMessage("Could not check for updates.");
+        break;
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    addSystemMessage(`Update check failed: ${message}`);
+  }
+}
+
+function toggleAutoUpdate(): void {
+  config.autoUpdate = !config.autoUpdate;
+  if (config.autoUpdate) {
+    config.checkForUpdates = true;
+  }
+  saveConfig(config);
+  addSystemMessage(`Auto-update: ${config.autoUpdate ? "ON" : "OFF"}`);
 }
 
 function addSystemMessage(content: string): ChatMessage {
@@ -1077,6 +1156,12 @@ async function handleSpecialCommand(input: string) {
     case "history":
       showHistory();
       break;
+    case "update":
+      await runManualUpdate();
+      break;
+    case "auto-update":
+      toggleAutoUpdate();
+      break;
     case "clear":
       clearChat();
       break;
@@ -1125,6 +1210,7 @@ provider  Switch provider     themes    Change theme
 dry       Toggle dry-run      safety   Select safety
 thinking  Select thinking
 config    Show config         history   Show history
+update    Check for updates   auto-update Toggle auto-update
 clear     Clear chat          exit      Exit
 
 Safety Levels:
@@ -1170,6 +1256,9 @@ Safety:       ${config.safetyLevel}
 Thinking:     ${config.thinkingLevel}
 Dry-run:      ${dryRunMode ? "ON" : "OFF"}
 Repo context: ${config.repoContext ? "ON" : "OFF"}
+Version:      ${getCurrentVersion()}
+Updates:      ${config.checkForUpdates !== false ? "checking enabled" : "checking disabled"}
+Auto-update:  ${config.autoUpdate ? "ON" : "OFF"}
 API Key:      ${apiKeyStatus}
 History:      ${history.length} commands`;
 
@@ -1471,6 +1560,18 @@ function getAppCommands(): AppCommand[] {
         statusBarText.content = getStatusBarContent();
         addSystemMessage(`Project context: ${config.repoContext ? "ON - AI can see your package.json scripts, Makefile targets, etc." : "OFF"}`);
       },
+    },
+    {
+      name: "Check for Updates",
+      description: `Current: v${getCurrentVersion()}`,
+      slash: "update",
+      action: () => runManualUpdate(),
+    },
+    {
+      name: "Toggle Auto-Update",
+      description: config.autoUpdate ? "Currently ON" : "Currently OFF",
+      slash: "auto-update",
+      action: () => toggleAutoUpdate(),
     },
     {
       name: "Show Config",

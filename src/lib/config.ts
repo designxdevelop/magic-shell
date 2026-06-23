@@ -38,6 +38,8 @@ const DEFAULT_CONFIG: Config = {
   ],
   confirmedDangerousPatterns: [],
   repoContext: false, // Opt-in for privacy
+  checkForUpdates: true,
+  autoUpdate: false,
   customModels: [],
 };
 

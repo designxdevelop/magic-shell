@@ -1,57 +1,39 @@
 ---
 title: Keyboard Shortcuts
-description: Complete reference for Magic Shell TUI keyboard shortcuts.
+description: Complete list of Magic Shell v1.0 TUI keyboard shortcuts.
 ---
 
-Magic Shell follows OpenCode-style TUI shortcuts where they map cleanly to this app.
-
-## Core Shortcuts
+## TUI Shortcuts
 
 | Shortcut | Action |
 | --- | --- |
-| `Ctrl+P` | Open Commands |
-| `Ctrl+X M` | Change model |
-| `Ctrl+X T` | Change theme |
-| `Ctrl+X Q` | Exit |
-| `Ctrl+T` | Cycle thinking level |
-| `Ctrl+C` | Exit, or cancel/close the active dialog first |
+| `Ctrl+P` | Open command palette |
+| `/` | Open slash command palette from the prompt |
+| `Ctrl+X M` | Open model picker |
+| `Ctrl+X T` | Open theme picker |
+| `Ctrl+Y` | Open safety level picker |
+| `Ctrl+T` | Open thinking level picker |
+| `Esc` | Close the active modal |
+| `Ctrl+C` | Close the active modal, then exit when no modal is open |
 | `Ctrl+D` | Exit |
-| `Esc` | Close dialogs or cancel pending commands |
-
-## Commands
-
-Press `Ctrl+P` to open Commands. Type to filter the list, use arrow keys to move, and press Enter to run the selected action.
+| `Ctrl+X Q` | Exit |
 
 ## Slash Commands
 
-Typing `/` opens a slash command menu under the prompt. Type to filter, use arrow keys to move, `Tab` to complete, and `Enter` to run the selected command.
-
-You can also submit slash commands directly:
-
 | Command | Action |
 | --- | --- |
-| `!help` or `/help` | Show help |
-| `!model` or `/models` | Change model |
-| `!provider` or `/providers` | Switch provider |
-| `!theme` or `/themes` | Change theme |
-| `!dry` or `/dry` | Toggle dry-run |
-| `!thinking` or `/thinking` | Cycle thinking level |
-| `!config` or `/config` | Show config |
-| `!history` or `/history` | Show history |
-| `!clear` or `/clear` | Clear output |
-| `!exit` or `/exit` | Exit |
+| `/help` | Show help |
+| `/models` | Open model picker |
+| `/providers` | Open provider picker |
+| `/themes` | Open theme picker |
+| `/safety` | Open safety level picker |
+| `/thinking` | Open thinking level picker |
+| `/dry` | Toggle dry-run mode |
+| `/config` | Show config |
+| `/history` | Show history |
+| `/clear` | Clear chat |
+| `/exit` | Exit |
 
-## Input Shortcuts
+Legacy `!` commands still work for compatibility.
 
-| Shortcut | Action |
-| --- | --- |
-| `Enter` | Submit |
-| `Shift+Enter` | Insert newline |
-| `Ctrl+Enter` | Insert newline |
-| `Alt+Enter` | Insert newline |
-| `Ctrl+J` | Insert newline |
-| `Ctrl+A` | Move to start of line |
-| `Ctrl+E` | Move to end of line |
-| `Ctrl+U` | Clear line |
-| `Ctrl+W` | Delete word before cursor |
-| `Ctrl+K` | Delete to end of line |
+The slash command palette and `Ctrl+P` command palette use the same command metadata, so descriptions and actions stay in sync.

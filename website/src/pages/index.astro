@@ -15,9 +15,9 @@ import TerminalWindow from "../components/TerminalWindow.astro";
   <section class="section features">
     <div class="container">
       <div class="section-header">
-        <h2>Everything you need</h2>
+        <h2>Magic Shell 1.0 is here</h2>
         <p class="section-subtitle">
-          Powerful features that make command-line work feel like magic.
+          A cleaner terminal UX with unified palettes, slash commands, explicit safety controls, and faster model switching.
         </p>
       </div>
 
@@ -38,9 +38,14 @@ import TerminalWindow from "../components/TerminalWindow.astro";
           icon="!!"
         />
         <FeatureCard
-          title="Beautiful TUI"
-          description="Full interactive terminal interface with 8 themes, command history, and keyboard shortcuts."
+          title="Unified Palettes"
+          description="Commands, slash actions, models, providers, themes, safety, and thinking levels now share one consistent picker pattern."
           icon="[]"
+        />
+        <FeatureCard
+          title="Slash Commands"
+          description="Type / to discover actions. /models, /providers, /themes, /safety, and /thinking open the same polished pickers as shortcuts."
+          icon="/>"
         />
         <FeatureCard
           title="Project Aware"
@@ -80,8 +85,8 @@ import TerminalWindow from "../components/TerminalWindow.astro";
             <span class="mode-badge">Recommended</span>
           </div>
           <p class="mode-description">
-            A full terminal interface with themes, history, model switching, and safety analysis. 
-            Perfect for exploration and extended sessions.
+            A full terminal interface with unified command palettes, slash commands, themes,
+            history, model switching, and safety analysis.
           </p>
           <TerminalWindow title="launch">
             <code class="step-code"><span class="prompt">$</span> mshell</code>
@@ -89,8 +94,8 @@ import TerminalWindow from "../components/TerminalWindow.astro";
           <ul class="mode-features">
             <li>8 beautiful themes</li>
             <li>Command history</li>
-            <li>Switch models on the fly</li>
-            <li>Keyboard shortcuts</li>
+            <li>Switch models and providers on the fly</li>
+            <li>Slash commands and keyboard shortcuts</li>
           </ul>
         </div>
 
@@ -142,7 +147,7 @@ import TerminalWindow from "../components/TerminalWindow.astro";
       <div class="section-header">
         <h2>8 beautiful themes</h2>
         <p class="section-subtitle">
-          Match your terminal aesthetic. Switch themes anytime with <code>Ctrl+X T</code>.
+          Match your terminal aesthetic. Switch themes anytime with <code>Ctrl+X T</code> or <code>/themes</code>.
         </p>
       </div>
 

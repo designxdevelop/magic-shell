@@ -1,58 +1,66 @@
 ---
 title: TUI Mode
-description: Magic Shell's full interactive terminal interface with themes, history, and keyboard shortcuts.
+description: Magic Shell's v1.0 interactive terminal interface with unified palettes, slash commands, themes, history, and keyboard shortcuts.
 ---
 
-import { Steps } from '@astrojs/starlight/components';
-
-Magic Shell's TUI mode provides an interactive command workspace for translating and executing commands.
+Magic Shell's TUI mode provides an interactive command workspace for translating and executing commands. In v1.0, commands, slash actions, models, providers, themes, safety levels, and thinking levels all use the same modal picker pattern.
 
 ```bash
 mshell
 ```
 
-## Interface Overview
+## Layout
 
-- **Header**: Current model, provider, and mode indicators
-- **Output area**: Command translations, safety analysis, and execution results
-- **Input area**: Multi-line prompt for natural-language requests or slash commands
-- **Status bar**: Provider, model, safety level, thinking level, and mode
+| Area | Purpose |
+| --- | --- |
+| Header | Current model, provider, and mode indicators |
+| Output | Command translations, safety analysis, and execution results |
+| Input | Multi-line prompt for natural-language requests or slash commands |
+| Status bar | Provider, model, safety level, thinking level, and mode |
 
-## Keyboard Shortcuts
+## Shortcuts
 
 | Shortcut | Action |
 | --- | --- |
-| `Ctrl+P` | Open Commands |
-| `Ctrl+X M` | Change model |
-| `Ctrl+X T` | Change theme |
-| `Ctrl+X Q` | Exit TUI |
-| `Ctrl+T` | Cycle thinking level |
-| `Ctrl+C` | Exit, or cancel/close the active dialog first |
+| `Ctrl+P` | Open command palette |
+| `Ctrl+X M` | Open model picker |
+| `Ctrl+X T` | Open theme picker |
+| `Ctrl+Y` | Open safety level picker |
+| `Ctrl+T` | Open thinking level picker |
+| `Esc` | Close the active modal |
+| `Ctrl+C` | Close the active modal, then exit when no modal is open |
 | `Ctrl+D` | Exit |
-| `Esc` | Close dialogs or cancel pending commands |
+| `Ctrl+X Q` | Exit TUI |
 
 ## Slash Commands
 
-Typing `/` opens a slash command menu under the prompt. Type to filter, use arrow keys to move, `Tab` to complete, and `Enter` to run the selected command.
-
-You can also submit slash commands directly:
+Typing `/` opens a slash command menu. Use arrow keys to select, then press `Tab` to complete or `Enter` to run the selected action.
 
 | Command | Action |
 | --- | --- |
 | `!help` or `/help` | Show help |
-| `!model` or `/models` | Change model |
-| `!provider` or `/providers` | Switch provider |
-| `!theme` or `/themes` | Change theme |
-| `!dry` or `/dry` | Toggle dry-run |
-| `!thinking` or `/thinking` | Cycle thinking level |
+| `!model` or `/models` | Open model picker |
+| `!provider` or `/providers` | Open provider picker |
+| `!theme` or `/themes` | Open theme picker |
+| `/safety` | Open safety level picker |
+| `!thinking` or `/thinking` | Open thinking level picker |
+| `!dry` or `/dry` | Toggle dry-run mode |
 | `!config` or `/config` | Show config |
 | `!history` or `/history` | Show history |
-| `!clear` or `/clear` | Clear output |
-| `!exit` or `/exit` | Exit |
+| `!clear` or `/clear` | Clear chat |
+| `!exit` or `/exit` | Exit TUI |
 
-## Dry-Run Mode
+The slash command palette and `Ctrl+P` command palette use the same command metadata, so descriptions and actions stay in sync.
 
-Dry-run mode translates and analyzes commands without executing them.
+## Safety and Thinking Pickers
+
+`Ctrl+Y` and `/safety` open the safety picker so you can choose `strict`, `moderate`, or `relaxed`.
+
+`Ctrl+T` and `/thinking` open the thinking picker so you can choose `off`, `low`, `medium`, or `high`.
+
+## Dry Run
+
+Dry-run mode translates and analyzes commands without executing them:
 
 ```bash
 !dry
@@ -60,15 +68,7 @@ Dry-run mode translates and analyzes commands without executing them.
 
 ## History
 
-Press `Ctrl+P` and choose **Show History**, or type `!history`, to review prior commands and outputs.
-
-## Model Switching
-
-<Steps>
-1. Press `Ctrl+X M` or type `/models`
-2. Use arrow keys to select a model
-3. Press Enter to confirm
-</Steps>
+Press `Ctrl+P` and choose **Show History**, or type `/history`, to review prior commands and outputs.
 
 ## Provider Switching
 
@@ -79,10 +79,4 @@ Press `Ctrl+P` and choose **Switch Provider**, or type `/providers`.
 1. Use dry-run for complex or destructive commands.
 2. Check history for similar past commands.
 3. Switch models if translations are not accurate.
-4. Use Commands with `Ctrl+P` to discover available actions.
-
-## Exiting TUI
-
-- `Ctrl+C` exits when no dialog or confirmation is active
-- `Ctrl+D` exits
-- `Ctrl+X Q` exits
+4. Use `Ctrl+P` or `/` to discover available actions.

@@ -1,643 +1,148 @@
 # Magic Shell
 
-> Transform natural language into terminal commands with built-in safety features.
+> Transform natural language into terminal commands with AI-powered translation, built-in safety, and a polished v1.0 terminal UI.
 
-Magic Shell is an open-source CLI tool that translates plain English (or any natural language) into shell commands using AI. It supports multiple AI providers, includes a beautiful interactive TUI mode, and features a comprehensive safety system to protect you from dangerous commands.
+Magic Shell is an open-source CLI that turns plain English into shell commands. Use `msh` for fast one-shot translations or `mshell` for the interactive TUI with command palettes, slash commands, model switching, themes, safety controls, and command history.
 
-## Features
+## v1.0
 
-- **Natural Language Translation**: Describe what you want to do in plain English
-- **Multiple AI Providers**: OpenCode Zen (with free models!), OpenRouter, Vercel AI Gateway, Cloudflare AI Gateway, Workers AI, and custom models (LM Studio, Ollama, OpenAI-compatible)
-- **Custom Model Support**: Add your own local or remote models with secure API key storage
-- **Project Context Aware**: Opt-in detection of package.json scripts, Makefile targets, etc.
-- **Interactive TUI Mode**: Full-featured terminal interface with themes
-- **Command Safety Analysis**: Multi-level safety checks before executing commands
-- **Auto Updates**: Automatic update checking with one-command upgrades
-- **Cross-Platform**: macOS, Linux, and Windows support
-- **Shell-Aware**: Automatically detects and adapts to your shell (bash, zsh, fish, PowerShell, etc.)
-- **Secure Credential Storage**: Uses system keychain (macOS Keychain, Linux secret-tool, Windows Credential Manager)
-- **Command History**: Context-aware translations based on your recent commands
-- **Beautiful Themes**: 8 built-in themes including Tokyo Night, Catppuccin, Dracula, and more
+Magic Shell 1.0 is focused on day-to-day terminal UX:
 
-## Installation
+- Unified command palettes for commands, slash commands, models, providers, themes, safety, thinking level, onboarding, and API key setup.
+- Slash commands now open the same picker actions as the command palette instead of submitting `/models` or `/providers` as plain text.
+- `Esc` and `Ctrl+C` close active modals before exiting the app.
+- Safety and thinking controls now open explicit pickers instead of blindly cycling values.
+- Model and provider pickers use clearer descriptions and consistent category/cost labels.
 
-### Via Package Manager (Recommended)
-
-**Prerequisite:** Magic Shell runs on the [Bun](https://bun.sh) runtime. Install Bun first,
-even if you install the package with npm, pnpm, or yarn.
+## Install
 
 ```bash
-# bun (recommended)
 bun add -g @austinthesing/magic-shell
+```
 
-# npm
+Other package managers:
+
+```bash
 npm install -g @austinthesing/magic-shell
-
-# pnpm
 pnpm add -g @austinthesing/magic-shell
-
-# yarn
 yarn global add @austinthesing/magic-shell
 ```
 
-### From Source
-
-**Prerequisite:** [Bun](https://bun.sh) runtime (v1.3.9 or higher)
+From source:
 
 ```bash
-# Clone the repository
 git clone https://github.com/austin-thesing/magic-shell.git
 cd magic-shell
-
-# Install dependencies
 bun install
-
-# Build
 bun run build
-
-# Link globally (optional)
 bun link
 ```
 
-### Quick Start
+## Quick Start
 
 ```bash
-# Run setup to configure your API key
 msh --setup
-
-# Or set via environment variable
-export OPENCODE_ZEN_API_KEY="your-key-here"
-```
-
-## Usage
-
-Use `msh` for CLI mode and `mshell` for TUI mode.
-
-### Basic Commands
-
-```bash
-# Translate a query to a command (prints the command)
-msh "list all javascript files"
-# Output: find . -name "*.js"
-
-# Translate and execute
-msh -x "show disk usage"
-
-# Dry run - preview with safety analysis
-msh -n "delete all node_modules folders"
-
-# Launch interactive TUI mode
 mshell
 ```
 
-### Command Reference
-
-| Command                   | Description                                 |
-| ------------------------- | ------------------------------------------- |
-| `msh <query>`             | Translate query to command and print it     |
-| `msh -x <query>`          | Translate and execute the command           |
-| `msh -n <query>`          | Dry run - show command with safety analysis |
-| `mshell`                  | Launch interactive TUI mode                 |
-| `msh --setup`             | Configure API keys and provider             |
-| `msh --models`            | List available models                       |
-| `msh --model <id>`        | Set default model (including custom models) |
-| `msh --add-model`         | Add custom model (LM Studio, Ollama, etc.)  |
-| `msh --list-custom`       | List custom models                          |
-| `msh --remove-model <id>` | Remove custom model                         |
-| `msh --provider <name>`   | Set provider (OpenCode Zen, OpenRouter, gateways, Workers AI, or custom)   |
-| `msh --thinking <level>`  | Set thinking level (off, low, medium, high) |
-| `msh --themes`            | List available themes                       |
-| `msh --theme <name>`      | Set color theme                             |
-| `msh --repo-context`      | Enable project context detection            |
-| `msh -r <query>`          | Use project context for single query        |
-| `msh --version`           | Show version                                |
-| `msh --check-update`      | Check for updates                           |
-| `msh --help`              | Show help                                   |
-
-### Examples
+You can also provide API keys with environment variables:
 
 ```bash
-# File operations
-msh "find all files larger than 100MB"
-msh "count lines of code in this project"
-msh "show the 10 most recently modified files"
-
-# Git operations
-msh "undo my last commit but keep changes"
-msh "show commits from the last week"
-msh "create a branch from main called feature-login"
-
-# System operations
-msh "check which process is using port 3000"
-msh "show memory usage"
-msh "list all running docker containers"
-
-# Execute directly
-msh -x "show current git branch"
-
-# Pipe to clipboard (macOS)
-msh "compress this folder to a zip file" | pbcopy
+export OPENCODE_ZEN_API_KEY="your-key-here"
+export OPENROUTER_API_KEY="your-key-here"
 ```
 
-## Interactive TUI Mode
-
-Launch with `mshell` for a full interactive experience.
-
-### Keyboard Shortcuts
-
-Magic Shell follows OpenCode-style TUI shortcuts where they fit cleanly:
-
-| Shortcut   | Action                 |
-| ---------- | ---------------------- |
-| `Ctrl+P`   | Open Commands          |
-| `Ctrl+X M` | Change model           |
-| `Ctrl+X T` | Change theme           |
-| `Ctrl+X Q` | Exit                   |
-| `Ctrl+T`   | Cycle thinking level   |
-| `Ctrl+C`   | Exit, or cancel/close the active dialog first |
-| `Ctrl+D`   | Exit                   |
-| `Esc`      | Close dialogs or cancel pending actions |
-
-### Slash Commands in TUI
-
-Typing `/` opens a slash command menu under the prompt. Type to filter, use arrow keys to move, `Tab` to complete, and `Enter` to run the selected command.
-
-You can also submit slash commands directly:
-
-- `!help` or `/help` - Show help
-- `!model` or `/models` - Change model
-- `!provider` or `/providers` - Switch provider
-- `!theme` or `/themes` - Change theme
-- `!dry` or `/dry` - Toggle dry-run mode
-- `!thinking` or `/thinking` - Cycle thinking level
-- `!config` or `/config` - Show current configuration
-- `!history` or `/history` - Show command history
-- `!clear` or `/clear` - Clear output
-- `!exit` or `/exit` - Exit the TUI
-
-Both `!` and `/` prefixes work for these commands.
-
-## AI Providers
-
-### OpenCode Zen (Recommended)
-
-OpenCode Zen provides curated models optimized for coding tasks, including **free models**.
-
-**Free Models:**
-
-- `deepseek-v4-flash-free` - DeepSeek's free fast open-source model (default)
-- `mimo-v2.5-free` - Xiaomi's free long-context MiMo model
-- `north-mini-code-free` - North's free coding model
-- `nemotron-3-ultra-free` - NVIDIA Nemotron free trial model
-- `big-pickle` - OpenCode stealth model
-- `gpt-5-nano` - OpenAI's free lightweight GPT model
-
-**Premium Models:**
-
-- Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5, Claude Fable 5
-- Kimi K2.6
-- DeepSeek V4 Pro, DeepSeek V4 Flash
-- GLM 5.2, GLM 5.1
-- Qwen3.7 Max, Qwen3.7 Plus
-- MiMo V2.5, MiMo V2.5 Pro
-- MiniMax M2.7
-- Gemini 3.5 Flash, Gemini 3.1 Pro, Gemini 3 Flash
-- GPT 5.5, GPT 5.5 Pro, GPT 5.4 Mini/Nano, GPT 5.3 Codex
-- And more...
-
-Get your API key at: https://opencode.ai/auth
-
-### OpenRouter
-
-Access to a wide variety of models from different providers.
-
-**Open-source and open-weight highlights:**
-
-- Kimi K2.7 Code, Kimi K2.6
-- DeepSeek V4 Pro, DeepSeek V4 Flash
-- GLM 5.2, GLM 5.1, GLM 5 Turbo
-- Qwen3.7 Max, Qwen3.7 Plus
-- MiniMax M3, MiniMax M2.7
-- MiMo V2.5, MiMo V2.5 Pro
-- And many more...
-
-Get your API key at: https://openrouter.ai/keys
-
-### Custom Models
-
-Magic Shell supports custom models for local or remote OpenAI-compatible endpoints, including:
-
-- **LM Studio** - Run models locally
-- **Ollama** - Local model management
-- **Any OpenAI-compatible API** - Self-hosted or third-party endpoints
-
-**Adding a Custom Model:**
+## CLI Usage
 
 ```bash
-# Interactive setup
-msh --add-model
-
-# You'll be prompted for:
-# - Model ID (for referencing, e.g., "my-local-llama")
-# - Display name (e.g., "Local Llama 3.2")
-# - API model ID (sent to server, e.g., "llama-3.2-3b")
-# - Base URL (e.g., "http://localhost:1234/v1")
-# - API key (optional, stored securely in keychain)
-# - Category (fast/smart/reasoning)
+msh "list all javascript files"
+msh -x "show disk usage"
+msh -n "delete all node_modules folders"
+msh -r "run the dev server"
 ```
 
-**Managing Custom Models:**
+| Command | Description |
+| --- | --- |
+| `msh <query>` | Translate a natural-language query to a shell command |
+| `msh -x <query>` | Translate and execute immediately |
+| `msh -n <query>` | Dry run with safety analysis |
+| `msh -r <query>` | Include project context for one query |
+| `mshell` | Launch interactive TUI mode |
+| `msh --setup` | Configure provider and API keys |
+| `msh --models` | List available models |
+| `msh --model <id>` | Set the default model |
+| `msh --provider <name>` | Set the active provider |
+| `msh --safety <level>` | Set safety level: `strict`, `moderate`, `relaxed` |
+| `msh --thinking <level>` | Set thinking level: `off`, `low`, `medium`, `high` |
+| `msh --themes` | List themes |
+| `msh --theme <name>` | Set theme |
+| `msh --repo-context` | Enable project context detection |
+| `msh --add-model` | Add a custom OpenAI-compatible model |
+| `msh --list-custom` | List custom models |
+| `msh --remove-model <id>` | Remove a custom model |
+
+## TUI Usage
+
+Launch the interactive app:
 
 ```bash
-# List all custom models
-msh --list-custom
-
-# Set a custom model as default
-msh --model my-local-llama
-
-# Remove a custom model
-msh --remove-model my-local-llama
+mshell
 ```
 
-Custom model API keys are securely stored in your system keychain, just like provider API keys.
+Core shortcuts:
 
-## Safety System
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+P` | Open the command palette |
+| `/` | Open slash commands from the prompt |
+| `Ctrl+X M` | Open model picker |
+| `Ctrl+X T` | Open theme picker |
+| `Ctrl+Y` | Open safety level picker |
+| `Ctrl+T` | Open thinking level picker |
+| `Esc` | Close the active modal |
+| `Ctrl+C` | Close the active modal, then exit when no modal is open |
+| `Ctrl+D` | Exit |
+| `Ctrl+X Q` | Exit |
 
-Magic Shell includes a comprehensive safety analysis system that categorizes commands by risk level:
+Slash commands expose the same functionality as the command palette:
 
-### Severity Levels
+| Command | Action |
+| --- | --- |
+| `/models` | Select model |
+| `/providers` | Switch provider |
+| `/themes` | Select theme |
+| `/safety` | Select safety level |
+| `/thinking` | Select thinking level |
+| `/dry` | Toggle dry-run mode |
+| `/config` | Show config |
+| `/history` | Show history |
+| `/clear` | Clear chat |
+| `/help` | Show help |
+| `/exit` | Exit |
 
-| Level        | Description                            | Examples                                |
-| ------------ | -------------------------------------- | --------------------------------------- |
-| **Critical** | Could cause irreversible system damage | `rm -rf /`, fork bombs, disk overwrites |
-| **High**     | Significant changes or data loss risk  | `sudo rm`, `kill -9 -1`, `shutdown`     |
-| **Medium**   | Requires elevated privileges           | `sudo`, `chmod`, package removal        |
-| **Low**      | Worth reviewing                        | `git checkout`, `npm install`           |
+Legacy `!` commands still work for compatibility.
 
-### Safety Levels
+## Providers
 
-Configure your preferred safety level:
+Magic Shell supports:
 
-- **Strict**: Confirm all potentially risky commands
-- **Moderate** (default): Confirm high and critical severity commands
-- **Relaxed**: Only confirm critical severity commands
+- OpenCode Zen
+- OpenRouter
+- Vercel AI Gateway
+- Cloudflare AI Gateway
+- Cloudflare Workers AI
+- Custom OpenAI-compatible endpoints like LM Studio and Ollama
 
-### Blocked Commands
-
-Certain dangerous patterns are always blocked:
-
-- Fork bombs
-- Direct disk writes (`> /dev/sda`)
-- Filesystem formatting (`mkfs`)
-- Recursive permission changes on root (`chmod -R 777 /`)
-
-## Configuration
-
-Configuration is stored in `~/.magic-shell/config.json`.
-
-### Config Options
-
-```json
-{
-  "provider": "opencode-zen",
-  "defaultModel": "deepseek-v4-flash-free",
-  "thinkingLevel": "low",
-  "safetyLevel": "moderate",
-  "dryRunByDefault": false,
-  "repoContext": false,
-  "theme": "opencode",
-  "blockedCommands": [...],
-  "confirmedDangerousPatterns": [...],
-  "customModels": [
-    {
-      "id": "my-local-llama",
-      "name": "Local Llama 3.2",
-      "modelId": "llama-3.2-3b",
-      "baseUrl": "http://localhost:1234/v1",
-      "contextLength": 128000,
-      "category": "smart"
-    }
-  ]
-}
-```
-
-### Environment Variables
-
-| Variable                         | Description                         |
-| -------------------------------- | ----------------------------------- |
-| `OPENCODE_ZEN_API_KEY`           | API key for OpenCode Zen            |
-| `OPENROUTER_API_KEY`             | API key for OpenRouter              |
-| `AI_GATEWAY_API_KEY`             | API key for Vercel AI Gateway       |
-| `CLOUDFLARE_AI_GATEWAY_API_KEY`  | API key/token for Cloudflare Gateway |
-| `CLOUDFLARE_API_TOKEN`           | API token for Workers AI            |
-| `CLOUDFLARE_ACCOUNT_ID`          | Account ID for Cloudflare providers |
-| `CLOUDFLARE_AI_GATEWAY_ID`       | Gateway ID for Cloudflare Gateway   |
-| `DEBUG_API=1`                    | Enable API response debugging       |
-
-## Themes
-
-Magic Shell includes 8 beautiful themes:
-
-- `opencode` (default) - Orange and blue tones
-- `tokyonight` - Soft purple and blue
-- `catppuccin` - Pastel Mocha variant
-- `gruvbox` - Retro warm tones
-- `nord` - Arctic cool blues
-- `dracula` - Purple vampire vibes
-- `one-dark` - Atom-inspired
-- `matrix` - Classic green terminal
-
-Change themes:
-
-```bash
-# CLI
-msh --theme tokyonight
-
-# TUI
-Ctrl+X T
-```
-
-## Shell Support
-
-Magic Shell automatically detects and adapts to your shell:
-
-- **Bash** - Full support with bash-specific syntax
-- **Zsh** - Extended globbing and array syntax
-- **Fish** - Fish-specific syntax (no `$()`, different variable syntax)
-- **PowerShell / pwsh** - Cmdlet syntax and object pipelines
-- **CMD** - Windows command syntax
-- **Nushell** - Structured data syntax
-- **POSIX sh** - Portable fallback
-
-## Platform Support
-
-| Platform | Shell Detection | Keychain Storage        |
-| -------- | --------------- | ----------------------- |
-| macOS    | Full            | macOS Keychain          |
-| Linux    | Full            | libsecret (secret-tool) |
-| Windows  | Full            | Credential Manager      |
-| WSL      | Full (detected) | libsecret               |
+OpenCode Zen is the recommended default and includes free models. Get an API key at [opencode.ai/auth](https://opencode.ai/auth).
 
 ## Development
 
 ```bash
-# Run in development mode
+bun install
 bun run dev
-
-# Run TUI in development mode
 bun run dev:tui
-
-# Type check
 bun run typecheck
-
-# Build for distribution
 bun run build
 ```
 
-### Project Structure
-
-```
-src/
-  index.ts          # CLI entry point
-  cli.ts            # TUI mode
-  lib/
-    types.ts        # Type definitions and model configs
-    config.ts       # Configuration management
-    api.ts          # AI provider integrations
-    safety.ts       # Command safety analysis
-    theme.ts        # Theme system
-    keychain.ts     # Secure credential storage
-    shell.ts        # Shell/platform detection
-```
-
-## Publishing to npm
-
-### Prerequisites
-
-1. Create an npm account at https://www.npmjs.com/signup
-2. Login to npm:
-   ```bash
-   npm login
-   ```
-
-### Preparing for Release
-
-1. **Update package.json** - Ensure these fields are set correctly:
-
-   ```json
-   {
-     "name": "@austinthesing/magic-shell",
-     "version": "0.2.13",
-     "description": "Natural language to terminal commands with safety features",
-     "main": "dist/index.js",
-     "bin": {
-       "msh": "dist/index.js",
-       "mshell": "dist/tui.js"
-     },
-     "files": ["dist", "README.md", "LICENSE"],
-     "repository": {
-       "type": "git",
-       "url": "https://github.com/austin-thesing/magic-shell.git"
-     },
-     "homepage": "https://github.com/austin-thesing/magic-shell#readme",
-     "bugs": {
-       "url": "https://github.com/austin-thesing/magic-shell/issues"
-     },
-     "keywords": ["cli", "terminal", "natural-language", "shell", "ai", "openrouter", "opencode", "command-line"],
-     "author": "Your Name <your@email.com>",
-     "license": "MIT"
-   }
-   ```
-
-2. **Build the project:**
-
-   ```bash
-   bun run build
-   ```
-
-3. **Test locally before publishing:**
-
-   ```bash
-   # Create a tarball
-   npm pack
-
-   # Install it globally to test
-   npm install -g ./magic-shell-0.1.0.tgz
-
-   # Test it works
-   msh --help
-
-   # Uninstall test version
-   npm uninstall -g magic-shell
-   ```
-
-### Publishing
-
-```bash
-# Publish to npm (first time)
-npm publish
-
-# Publish with public access (for scoped packages like @your-username/magic-shell)
-npm publish --access public
-```
-
-### Releasing New Versions
-
-1. **Update version** (follows [semver](https://semver.org/)):
-
-   ```bash
-   # Patch release (bug fixes): 0.1.0 -> 0.1.1
-   npm version patch
-
-   # Minor release (new features): 0.1.0 -> 0.2.0
-   npm version minor
-
-   # Major release (breaking changes): 0.1.0 -> 1.0.0
-   npm version major
-   ```
-
-2. **Push tags to GitHub:**
-
-   ```bash
-   git push origin main --tags
-   ```
-
-3. **Publish the new version:**
-   ```bash
-   npm publish
-   ```
-
-### Automated Releases with GitHub Actions
-
-Create `.github/workflows/release.yml`:
-
-```yaml
-name: Release
-
-on:
-  push:
-    tags:
-      - "v*"
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build
-        run: bun run build
-
-      - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-```
-
-Add your npm token to GitHub:
-
-1. Generate token at https://www.npmjs.com/settings/tokens (use "Automation" type)
-2. Add to repository secrets as `NPM_TOKEN`
-
-### Version Management Tips
-
-- Use `npm version` commands - they automatically:
-  - Update `package.json` version
-  - Create a git commit
-  - Create a git tag
-
-- Consider using [Changesets](https://github.com/changesets/changesets) for monorepo or complex versioning
-
-- Add a `prepublishOnly` script to ensure builds are fresh:
-  ```json
-  {
-    "scripts": {
-      "prepublishOnly": "bun run build"
-    }
-  }
-  ```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Release Notes
-
-### v0.2.22 - Model Catalog and Release Prep
-
-- Refreshed OpenCode Zen and OpenRouter model registries with current June 2026 open-source/open-weight entries
-- Updated the default free Zen model to `deepseek-v4-flash-free`
-- Added Zen routing support for Qwen models on the Messages endpoint
-- Updated release docs and website provider surfaces for the refreshed provider/model set
-
-### v0.2.20 - Thinking Controls and Zen Free Models
-- Added `--thinking <level>` and `thinkingLevel` config support (`off`, `low`, `medium`, `high`)
-- Added provider-specific reasoning controls for supported OpenRouter, OpenCode Zen, gateway, and custom models
-- Updated OpenCode Zen free models and default model references to `minimax-m2.5-free`
-- Disabled custom thinking parameters when the selected model/provider does not support them
-
-### v0.2.19 - AI Gateway Providers
-- Added Vercel AI Gateway, Cloudflare AI Gateway, and Cloudflare Workers AI providers
-- Added gateway provider setup, switching, model listing, API-key handling, and environment variables
-- Refreshed OpenCode Zen and OpenRouter registries with current OpenAI, Anthropic, Kimi, DeepSeek, GLM, MiniMax, and MiMo model IDs
-- Added provider-scoped model helpers so model selection follows the active provider
-
-### v0.2.18 - Model Registry Refresh
-- Added latest MiMo V2.5 and MiMo V2.5 Pro entries for OpenCode Zen
-- Added latest Xiaomi MiMo V2.5 and MiMo V2.5 Pro entries for OpenRouter
-- Removed the older OpenRouter MiMo V2 Flash free entry from docs and model listings
-- Updated runtime dependencies for the published CLI package
-
-### v0.2.17 - Dependency Maintenance
-- Updated published CLI dependencies to current releases
-- Fixed TUI input typing compatibility after the `@opentui/core` upgrade
-
-### v0.2.15 - Slash Command Support
-- Added `/` command support in TUI mode (e.g., `/help`, `/clear`)
-- Both `!` and `/` prefixes now work for all TUI commands
-- Updated help text to show command options
-
-### v0.2.14
-- Improved CI/CD workflows
-- Enhanced landing page SEO and structure
-- Fixed bin paths in package.json
-
-### v0.2.13
-- Added custom model support (LM Studio, Ollama, OpenAI-compatible)
-- Secure credential storage via system keychain
-- Project context detection for package.json scripts and Makefile
-- Multiple AI providers (OpenCode Zen, OpenRouter)
-- Beautiful TUI with 8 built-in themes
-- Comprehensive safety system with severity levels
-
-## Acknowledgments
-
-- Built with [Bun](https://bun.sh)
-- TUI powered by [@opentui/core](https://github.com/opentui/core)
-- Theme colors inspired by [OpenCode](https://github.com/anomalyco/opencode)
-
----
-
-**Magic Shell** - Type what you mean, execute what you need.
+No test framework is configured yet.

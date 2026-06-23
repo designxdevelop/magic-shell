@@ -3,6 +3,19 @@ title: Changelog
 description: Release notes and version history for Magic Shell
 ---
 
+## v1.0.0 - Unified TUI UX
+
+**Released:** June 22, 2026
+
+Magic Shell 1.0 marks the first stable release of the refreshed terminal experience.
+
+- Unified command palette, slash command menu, model picker, provider picker, theme picker, onboarding provider picker, safety picker, thinking picker, and API-key setup around a consistent modal style.
+- Slash commands now run the selected action directly, so `/models`, `/providers`, `/themes`, `/safety`, and `/thinking` open the proper picker instead of submitting text as a normal prompt.
+- Added explicit safety and thinking level pickers. `Ctrl+Y` opens safety levels and `Ctrl+T` opens thinking levels.
+- Improved modal cancellation: `Esc` and `Ctrl+C` close the active modal before exiting the TUI.
+- Improved model and provider descriptions, cost labels, and footer helper text so picker context is easier to read.
+- Bumped package version to `1.0.0`.
+
 ## v0.2.24 - Cost-Tier System
 
 **Released:** June 22, 2026

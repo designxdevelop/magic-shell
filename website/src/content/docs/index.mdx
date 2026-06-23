@@ -1,9 +1,9 @@
 ---
-title: Magic Shell Documentation
-description: Transform natural language into terminal commands with AI-powered translation and built-in safety features.
+title: Magic Shell 1.0 Documentation
+description: Transform natural language into terminal commands with AI-powered translation, built-in safety, and a polished terminal UI.
 template: splash
 hero:
-  tagline: Transform natural language into terminal commands with AI-powered translation and built-in safety features.
+  tagline: Transform natural language into terminal commands with AI-powered translation, built-in safety, and a polished terminal UI.
   actions:
     - text: Get Started
       link: /getting-started/installation/
@@ -18,6 +18,8 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## Quick Start
 
+Magic Shell 1.0 ships a more cohesive terminal experience: unified command palettes, slash commands that open the same actions as shortcuts, explicit safety and thinking pickers, clearer model/provider descriptions, and consistent modal behavior across setup and daily use.
+
 ```bash
 # Install Magic Shell
 bun add -g @austinthesing/magic-shell
@@ -25,7 +27,7 @@ bun add -g @austinthesing/magic-shell
 # Configure your API key
 msh --setup
 
-# Launch the interactive TUI
+# Launch the v1.0 interactive TUI
 mshell
 
 # Or use quick CLI mode
@@ -36,7 +38,7 @@ msh "find all files larger than 100MB"
 
 <CardGrid stagger>
   <Card title="TUI Mode" icon="laptop">
-    Launch `mshell` for a full interactive terminal interface with themes, history, and shortcuts.
+    Launch `mshell` for unified palettes, slash commands, themes, history, and shortcuts.
     [Explore TUI →](/features/tui-mode/)
   </Card>
   <Card title="CLI Mode" icon="rocket">

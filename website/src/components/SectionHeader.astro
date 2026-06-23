@@ -1,0 +1,88 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  id?: string;
+  align?: "center" | "left";
+}
+
+const { eyebrow, title, subtitle, id, align = "center" } = Astro.props;
+---
+
+<div class:list={["section-header", `align-${align}`]} id={id}>
+  {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+  <h2>{title}</h2>
+  {subtitle && <p class="section-subtitle" set:html={subtitle} /> }
+</div>
+
+<style>
+  .section-header {
+    margin-bottom: var(--space-12);
+  }
+
+  .section-header.align-center {
+    text-align: center;
+  }
+
+  .section-header.align-left {
+    text-align: left;
+    max-width: 640px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: var(--space-3);
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--color-primary);
+    opacity: 0.6;
+  }
+
+  .align-center .eyebrow::before {
+    display: none;
+  }
+
+  .section-header h2 {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-4);
+    letter-spacing: -0.02em;
+  }
+
+  .section-subtitle {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .align-left .section-subtitle {
+    margin: 0;
+  }
+
+  .section-subtitle code {
+    background: var(--bg-elevated);
+    padding: 0.15em 0.4em;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+  }
+
+  @media (max-width: 600px) {
+    .section-header h2 {
+      font-size: var(--text-2xl);
+    }
+  }
+</style>

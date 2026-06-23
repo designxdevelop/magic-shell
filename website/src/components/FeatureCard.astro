@@ -2,22 +2,103 @@
 interface Props {
   title: string;
   description: string;
+  /** Named icon rendered as inline SVG */
   icon?: string;
+  /** Accent hue used for the icon, top stripe (featured), and hover glow */
+  accent?: "primary" | "secondary" | "accent" | "info" | "warning" | "danger";
+  /** Featured cards render larger in the bento grid with an accent top stripe */
+  featured?: boolean;
+  /** Opt into scroll-reveal animation */
+  reveal?: boolean;
 }
 
-const { title, description, icon } = Astro.props;
+const { title, description, icon = "default", accent = "primary", featured = false, reveal = false } = Astro.props;
+
+const accentVar: Record<string, string> = {
+  primary: "var(--accent-primary)",
+  secondary: "var(--accent-secondary)",
+  accent: "var(--accent-accent)",
+  info: "var(--accent-info)",
+  warning: "var(--accent-warning)",
+  danger: "var(--accent-danger)",
+};
+
+const stripes: Record<string, string> = {
+  primary: "var(--accent-primary)",
+  secondary: "var(--accent-secondary)",
+  accent: "var(--accent-accent)",
+  info: "var(--accent-info)",
+  warning: "var(--accent-warning)",
+  danger: "var(--accent-danger)",
+};
 ---
 
-<div class="feature-card">
-  <div class="feature-header">
-    <div class="traffic-lights">
-      <span class="light"></span>
-      <span class="light"></span>
-      <span class="light"></span>
-    </div>
-    {icon && <span class="feature-icon">{icon}</span>}
-  </div>
+<div
+  class:list={["feature-card", { featured, reveal }, `accent-${accent}`]}
+  style={`--accent: ${accentVar[accent]}; --stripe: ${stripes[accent]};`}
+>
+  {featured && <div class="accent-stripe" aria-hidden="true"></div>}
   <div class="feature-content">
+    <div class="feature-icon" aria-hidden="true">
+      {icon === "language" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 5h12M8 5c0 6-3 9-6 11M7 9c0 4 4 6 8 6" />
+          <path d="M13 19l3-7 3 7M14.5 17h3" />
+        </svg>
+      )}
+      {icon === "providers" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="6" rx="1.5" />
+          <rect x="3" y="14" width="18" height="6" rx="1.5" />
+          <path d="M7 7h.01M7 17h.01" />
+        </svg>
+      )}
+      {icon === "shield" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+      )}
+      {icon === "palette" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a9 9 0 100 18c1 0 1.5-.8 1.5-1.8 0-1.2-1-1.4-1-2.4 0-.9.7-1.6 1.6-1.6H16a5 5 0 005-5c0-4.4-4-7.2-9-7.2z" />
+          <circle cx="7.5" cy="11.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="10.5" cy="8" r="1" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="8" r="1" fill="currentColor" stroke="none" />
+          <circle cx="17.5" cy="11.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      )}
+      {icon === "slash" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M14 6l-4 12" />
+        </svg>
+      )}
+      {icon === "folder" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+          <path d="M8 12h6M8 15h4" />
+        </svg>
+      )}
+      {icon === "terminal" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M7 9l3 3-3 3M13 15h4" />
+        </svg>
+      )}
+      {icon === "refresh" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 00-14-4M4 13a8 8 0 0014 4" />
+          <path d="M20 4v5h-5M4 20v-5h5" />
+        </svg>
+      )}
+      {icon === "default" && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v4l3 2" />
+        </svg>
+      )}
+    </div>
     <h3 class="feature-title">{title}</h3>
     <p class="feature-description">{description}</p>
   </div>
@@ -25,97 +106,78 @@ const { title, description, icon } = Astro.props;
 
 <style>
   .feature-card {
+    --accent: var(--accent-primary);
+    --stripe: var(--accent-primary);
+    position: relative;
     background: var(--bg-terminal);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: all var(--transition-base);
-    position: relative;
-  }
-
-  .feature-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-lg);
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      transparent 0%,
-      var(--border-subtle) 50%,
-      transparent 100%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity var(--transition-base);
+    transition: border-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
   }
 
   .feature-card:hover {
-    border-color: var(--border-active);
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--border-subtle));
     transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 8px 30px -12px color-mix(in srgb, var(--accent) 45%, transparent);
   }
 
-  .feature-card:hover::before {
-    opacity: 1;
-    background: linear-gradient(
-      135deg,
-      var(--color-primary-glow) 0%,
-      transparent 50%,
-      var(--color-primary-glow) 100%
-    );
-  }
-
-  .feature-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3) var(--space-4);
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .traffic-lights {
-    display: flex;
-    gap: 6px;
-  }
-
-  .light {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--border-default);
-  }
-
-  .feature-card:hover .traffic-lights .light:nth-child(1) {
-    background: #ff5f56;
-  }
-
-  .feature-card:hover .traffic-lights .light:nth-child(2) {
-    background: #ffbd2e;
-  }
-
-  .feature-card:hover .traffic-lights .light:nth-child(3) {
-    background: #27ca3f;
-  }
-
-  .feature-icon {
-    font-size: var(--text-lg);
+  .accent-stripe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--stripe), transparent);
   }
 
   .feature-content {
-    padding: var(--space-5);
+    padding: var(--space-6);
+  }
+
+  .featured .feature-content {
+    padding: var(--space-8);
+  }
+
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  .featured .feature-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .feature-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .featured .feature-icon svg {
+    width: 26px;
+    height: 26px;
   }
 
   .feature-title {
     font-family: var(--font-mono);
     font-size: var(--text-base);
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--text-primary);
     margin-bottom: var(--space-2);
     letter-spacing: -0.01em;
+  }
+
+  .featured .feature-title {
+    font-size: var(--text-lg);
   }
 
   .feature-description {
@@ -123,5 +185,11 @@ const { title, description, icon } = Astro.props;
     color: var(--text-secondary);
     line-height: 1.6;
     margin: 0;
+  }
+
+  .featured .feature-description {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    max-width: 48ch;
   }
 </style>

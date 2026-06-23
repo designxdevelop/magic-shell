@@ -148,6 +148,18 @@ img {
   font-family: var(--font-mono);
 }
 
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
@@ -212,18 +224,59 @@ img {
   animation: fadeInUp var(--transition-slow) ease forwards;
 }
 
-/* Stagger children animations */
-.stagger-children > * {
+/* Scroll-triggered reveal (progressively enhanced via IntersectionObserver
+   in src/scripts/reveal.ts). Falls back to visible when JS is absent. */
+.reveal {
   opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition-delay: calc(var(--reveal-i, 0) * 80ms);
+}
+
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Legacy stagger class kept for compatibility - no longer hides content */
+.stagger-children > * {
   animation: fadeInUp 0.5s ease forwards;
 }
 
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 400ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 500ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 560ms; }
+
+/* Respect reduced-motion preferences: disable transforms/infinite loops */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .cursor-blink,
+  .tui-cursor,
+  .preview-cursor {
+    animation: none !important;
+  }
+}
 
 /* Container */
 .container {

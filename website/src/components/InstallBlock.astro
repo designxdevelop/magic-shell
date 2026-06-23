@@ -45,6 +45,7 @@ const commands = {
   </div>
 
   <div class="install-commands">
+    <span class="copy-status visually-hidden" role="status" aria-live="polite"></span>
     <div class:list={["command-panel", { active: platform === "bun" }]} data-panel="bun">
       <div class="command-wrapper">
         <span class="prompt">$</span>
@@ -118,7 +119,14 @@ const commands = {
       try {
         await navigator.clipboard.writeText(command);
         btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 2000);
+        btn.setAttribute('aria-label', 'Copied');
+        const status = btn.closest('.install-block')?.querySelector<HTMLElement>('.copy-status');
+        if (status) status.textContent = 'Command copied to clipboard';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.setAttribute('aria-label', 'Copy command');
+          if (status) status.textContent = '';
+        }, 2000);
       } catch (err) {
         console.error('Failed to copy:', err);
       }

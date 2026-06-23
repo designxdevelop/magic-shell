@@ -14,10 +14,12 @@ const themes = [
 <div class="theme-showcase">
   <div class="theme-grid">
     {themes.map((theme) => (
-      <button 
-        class="theme-card" 
+      <button
+        class="theme-card"
         data-theme={theme.id}
         style={`--theme-primary: ${theme.primary}; --theme-bg: ${theme.bg};`}
+        aria-pressed="false"
+        aria-label={`${theme.name} theme`}
       >
         <div class="theme-preview">
           <div class="preview-header">
@@ -66,8 +68,12 @@ const themes = [
       const primary = card.style.getPropertyValue('--theme-primary');
       const bg = card.style.getPropertyValue('--theme-bg');
       
-      cards.forEach(c => c.classList.remove('active'));
+      cards.forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
       card.classList.add('active');
+      card.setAttribute('aria-pressed', 'true');
       
       if (demo) {
         demo.style.setProperty('--active-primary', primary);
@@ -78,6 +84,7 @@ const themes = [
 
   // Set first theme as active
   cards[0]?.classList.add('active');
+  cards[0]?.setAttribute('aria-pressed', 'true');
 </script>
 
 <style>

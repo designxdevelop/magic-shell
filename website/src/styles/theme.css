@@ -27,11 +27,11 @@
   --bg-surface: #161616;
   --bg-subtle: #1c1c1c;
 
-  /* Text */
-  --text-primary: #eeeeee;
-  --text-secondary: #b0b0b0;
-  --text-muted: #707070;
-  --text-dim: #505050;
+  /* Text - tuned for WCAG AA against --bg-void #030303 */
+  --text-primary: #f0f0f0;
+  --text-secondary: #b8b8b8;
+  --text-muted: #8c8c8c;
+  --text-dim: #6a6a6a;
 
   /* Borders */
   --border-subtle: #252525;
@@ -90,6 +90,23 @@
   --z-elevated: 10;
   --z-overlay: 100;
   --z-modal: 1000;
+  --z-nav: 50;
+}
+
+/* Feature accent palette - semantic hues to categorize capabilities
+   (danger is tuned slightly apart from the safety-critical red) */
+:root {
+  --accent-primary: #fab283;   /* orange  - translation / shell */
+  --accent-secondary: #5c9cf5; /* blue    - providers / network */
+  --accent-accent: #9d7cf6;    /* purple  - palettes / ui */
+  --accent-info: #56b6c2;      /* cyan    - commands / input */
+  --accent-warning: #f5a742;  /* amber   - project / lifecycle */
+  --accent-danger: #f0788a;    /* rose    - safety / risk */
+}
+
+/* Section divider - subtle hairline for visual section breaks */
+:root {
+  --divider-color: rgba(255, 255, 255, 0.04);
 }
 
 /* Safety severity colors */

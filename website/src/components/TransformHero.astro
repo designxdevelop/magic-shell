@@ -45,14 +45,14 @@ import InstallBlock from "./InstallBlock.astro";
 
     <!-- Demo section -->
     <div class="hero-demo">
-      <div class="demo-tabs">
-        <button class="demo-tab active" data-mode="cli">CLI Mode</button>
-        <button class="demo-tab" data-mode="tui">TUI Mode</button>
+      <div class="demo-tabs" role="tablist" aria-label="Magic Shell usage demo">
+        <button class="demo-tab active" data-mode="cli" role="tab" id="demo-tab-cli" aria-selected="true" aria-controls="demo-panel-cli" tabindex="0">CLI Mode</button>
+        <button class="demo-tab" data-mode="tui" role="tab" id="demo-tab-tui" aria-selected="false" aria-controls="demo-panel-tui" tabindex="-1">TUI Mode</button>
       </div>
 
       <div class="demo-container">
         <!-- CLI Demo -->
-        <div class="demo-window cli-demo active" data-demo="cli">
+        <div class="demo-window cli-demo active" data-demo="cli" role="tabpanel" id="demo-panel-cli" aria-labelledby="demo-tab-cli">
           <div class="demo-header">
             <div class="demo-lights">
               <span></span><span></span><span></span>
@@ -64,7 +64,7 @@ import InstallBlock from "./InstallBlock.astro";
               <span class="prompt">$</span>
               <span class="typing-container">
                 <span class="typing-text" id="typing-input"></span>
-                <span class="cursor"></span>
+                <span class="cursor" aria-hidden="true"></span>
               </span>
             </div>
             <div class="demo-output-line" id="demo-output">
@@ -75,7 +75,7 @@ import InstallBlock from "./InstallBlock.astro";
         </div>
 
         <!-- TUI Demo -->
-        <div class="demo-window tui-demo" data-demo="tui">
+        <div class="demo-window tui-demo" data-demo="tui" role="tabpanel" id="demo-panel-tui" aria-labelledby="demo-tab-tui" hidden>
           <div class="demo-header">
             <div class="demo-lights">
               <span></span><span></span><span></span>
@@ -206,8 +206,8 @@ import InstallBlock from "./InstallBlock.astro";
   const tuiExecOutput = document.getElementById('tui-exec-output');
 
   // Tab switching
-  const tabs = document.querySelectorAll('.demo-tab');
-  const demos = document.querySelectorAll('.demo-window');
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.demo-tab');
+  const demos = document.querySelectorAll<HTMLDivElement>('.demo-window');
 
   // Smooth easing for typing - variable speed that feels more natural
   function getTypingDelay(baseSpeed: number, charIndex: number, totalLength: number): number {
@@ -227,19 +227,24 @@ import InstallBlock from "./InstallBlock.astro";
     currentMode = mode;
     cycleCount = 0;
     
-    tabs.forEach(t => t.classList.remove('active'));
-    const activeTab = document.querySelector(`.demo-tab[data-mode="${mode}"]`);
-    activeTab?.classList.add('active');
+    tabs.forEach(t => {
+      const isActive = t.dataset.mode === mode;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-selected', String(isActive));
+      t.tabIndex = isActive ? 0 : -1;
+    });
     
-    // Crossfade transition
+    // Crossfade transition + a11y visibility
     demos.forEach(d => {
-      const isTarget = d.getAttribute('data-demo') === mode;
+      const isTarget = d.dataset.demo === mode;
       if (isTarget) {
         d.classList.add('active');
+        d.hidden = false;
       } else {
         d.classList.add('fading-out');
         setTimeout(() => {
           d.classList.remove('active', 'fading-out');
+          d.hidden = true;
         }, 300);
       }
     });
@@ -257,6 +262,17 @@ import InstallBlock from "./InstallBlock.astro";
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const mode = tab.getAttribute('data-mode') as 'cli' | 'tui';
+      switchToMode(mode);
+    });
+    tab.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const tabEls = Array.from(tabs) as HTMLElement[];
+      const idx = tabEls.indexOf(tab as HTMLElement);
+      const nextIdx = e.key === 'ArrowRight' ? (idx + 1) % tabEls.length : (idx - 1 + tabEls.length) % tabEls.length;
+      const next = tabEls[nextIdx];
+      next.focus();
+      const mode = next.getAttribute('data-mode') as 'cli' | 'tui';
       switchToMode(mode);
     });
   });

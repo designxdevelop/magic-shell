@@ -69,6 +69,156 @@ const siteUrl = Astro.site?.origin ?? "https://mshell.dev"
     </script>
   </head>
   <body>
+    <header class="site-nav" id="site-nav">
+      <div class="container nav-inner">
+        <a href="/" class="nav-brand" aria-label="Magic Shell home">
+          <span class="nav-brand-mark">$</span>
+          <span class="nav-brand-name">msh</span>
+        </a>
+        <nav class="nav-links" aria-label="Section navigation">
+          <a href="/#features" class="nav-link">Features</a>
+          <a href="/#modes" class="nav-link">Modes</a>
+          <a href="/#safety" class="nav-link">Safety</a>
+          <a href="/#themes" class="nav-link">Themes</a>
+          <a href="/#get-started" class="nav-link">Get Started</a>
+        </nav>
+        <nav class="nav-actions" aria-label="External links">
+          <a href="/getting-started/installation/" class="nav-link nav-link-em">Docs</a>
+          <a href="https://github.com/austin-thesing/magic-shell" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
     <slot />
+
+    <script>
+      // Sticky nav shadow on scroll + scrollspy for active section
+      const nav = document.getElementById('site-nav');
+      const sections = ['features', 'modes', 'safety', 'themes', 'get-started']
+        .map(id => document.getElementById(id))
+        .filter(Boolean) as HTMLElement[];
+
+      if (nav) {
+        const onScroll = () => {
+          if (window.scrollY > 8) nav.classList.add('scrolled');
+          else nav.classList.remove('scrolled');
+        };
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+      }
+
+      // Scrollspy
+      const links = document.querySelectorAll<HTMLAnchorElement>('.nav-links .nav-link');
+      const linkFor = (id: string) =>
+        document.querySelector<HTMLAnchorElement>(`.nav-links .nav-link[href="/#${id}"]`);
+
+      if (sections.length && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              links.forEach(l => l.classList.remove('active'));
+              linkFor(entry.target.id)?.classList.add('active');
+            }
+          });
+        }, { rootMargin: '-45% 0px -50% 0px' });
+        sections.forEach(s => observer.observe(s));
+      }
+
+      // Scroll-triggered reveal for .reveal elements
+      const reveals = document.querySelectorAll('.reveal');
+      if (reveals.length && 'IntersectionObserver' in window) {
+        const revealObserver = new IntersectionObserver((entries, obs) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              obs.unobserve(entry.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -10% 0px' });
+        reveals.forEach(el => revealObserver.observe(el));
+      }
+    </script>
+
+    <style is:global>
+      .site-nav {
+        position: sticky;
+        top: 0;
+        z-index: var(--z-nav);
+        background: color-mix(in srgb, var(--bg-void) 88%, transparent);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid transparent;
+        transition: border-color var(--transition-fast), background var(--transition-fast);
+      }
+
+      .site-nav.scrolled {
+        border-bottom-color: var(--border-subtle);
+        background: color-mix(in srgb, var(--bg-void) 92%, transparent);
+      }
+
+      .nav-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        height: 56px;
+      }
+
+      .nav-brand {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--text-primary);
+        text-decoration: none;
+      }
+
+      .nav-brand-mark {
+        color: var(--color-primary);
+      }
+
+      .nav-brand-name {
+        font-size: var(--text-lg);
+        letter-spacing: -0.01em;
+      }
+
+      .nav-links,
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-5);
+      }
+
+      .nav-link {
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+        letter-spacing: 0.02em;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        color: var(--color-primary);
+      }
+
+      .nav-link-em {
+        color: var(--text-secondary);
+      }
+
+      @media (max-width: 720px) {
+        .nav-links {
+          display: none;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .nav-actions .nav-link:first-child {
+          display: none;
+        }
+      }
+    </style>
   </body>
 </html>

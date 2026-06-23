@@ -17,15 +17,15 @@ Magic Shell 1.0 is focused on day-to-day terminal UX:
 ## Install
 
 ```bash
-bun add -g @austinthesing/magic-shell
+bun add -g @austinthesing/magic-shell@latest
 ```
 
 Other package managers:
 
 ```bash
-npm install -g @austinthesing/magic-shell
-pnpm add -g @austinthesing/magic-shell
-yarn global add @austinthesing/magic-shell
+npm install -g @austinthesing/magic-shell@latest
+pnpm add -g @austinthesing/magic-shell@latest
+yarn global add @austinthesing/magic-shell@latest
 ```
 
 From source:

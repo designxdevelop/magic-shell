@@ -277,7 +277,7 @@ https://mshell.dev
 ⏱ 5 minutes • Free
 
 1. Install Magic Shell
-   Run: bun add -g @austinthesing/magic-shell
+   Run: bun add -g @austinthesing/magic-shell@latest
 
 2. Configure API Key
    Run: msh --setup

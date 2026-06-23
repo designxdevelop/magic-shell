@@ -83,12 +83,11 @@ function getApiKeyUrl(provider: Provider): string {
 }
 let inputHintText: TextRenderable;
 let helpBarText: TextRenderable;
-let modelSelector: SelectRenderable | null = null;
-let providerSelector: SelectRenderable | null = null;
 let slashCommandMatches: SlashCommand[] = [];
 let slashCommandSelectedIndex = 0;
 let slashCommandSyncQueued = false;
 let slashCommandExecuting = false;
+let slashCommandDismissedInput: string | null = null;
 
 // Pending command state (for the most recent assistant message awaiting confirmation)
 let pendingMessageId: string | null = null;
@@ -111,12 +110,16 @@ function getCostTier(model: Model | CustomModel): CostTier {
 function costTierLabel(tier: CostTier): string {
   switch (tier) {
     case "free":
-      return "FREE";
+      return "Free";
     case "lower-cost":
-      return "lower-cost";
+      return "Lower Cost";
     case "premium":
-      return "premium";
+      return "Premium";
   }
+}
+
+function getModelDisplayName(model: Model): string {
+  return model.cost === "free" ? model.name.replace(/\s+Free$/i, "") : model.name;
 }
 
 async function main() {
@@ -181,57 +184,54 @@ async function showProviderSetup() {
   const options: SelectOption[] = [
     {
       name: "OpenCode Zen (Recommended)",
-      description: "Curated models optimized for coding. Has free models!",
+      description: "Curated coding models with a generous free tier.",
       value: "opencode-zen",
     },
     {
       name: "OpenRouter",
-      description: "Access to many models from various providers",
+      description: "Broad model catalog across major providers.",
       value: "openrouter",
     },
     {
       name: "Vercel AI Gateway",
-      description: "Unified model gateway using AI_GATEWAY_API_KEY",
+      description: "Vercel-hosted gateway for managed model access.",
       value: "vercel-ai-gateway",
     },
     {
       name: "Cloudflare AI Gateway",
-      description: "Cloudflare gateway for provider and Workers AI models",
+      description: "Cloudflare gateway for provider and Workers AI routing.",
       value: "cloudflare-ai-gateway",
     },
     {
       name: "Cloudflare Workers AI",
-      description: "Cloudflare-hosted models via Workers AI",
+      description: "Cloudflare-hosted models with direct Workers AI access.",
       value: "workers-ai",
     },
   ];
 
-  providerSelector = new SelectRenderable(renderer, {
-    id: "provider-select",
-    width: 60,
-    height: 10,
+  let providerSetupModal: ModalListHandle | null = null
+
+  providerSetupModal = openModalList({
+    containerId: "provider-setup-container",
+    selectorId: "provider-select",
+    title: "Choose Provider",
+    width: 65,
     options,
-    backgroundColor: "#1e293b",
-    focusedBackgroundColor: "#1e293b",
-    selectedBackgroundColor: "#334155",
-    textColor: "#e2e8f0",
-    selectedTextColor: "#60a5fa",
-    descriptionColor: "#64748b",
-    selectedDescriptionColor: "#94a3b8",
-    showDescription: true,
-    wrapSelection: true,
-  });
-  container.add(providerSelector);
+    onSelect: async (_: number, option: SelectOption) => {
+      const provider = option.value as Provider;
+      config.provider = provider;
+      saveConfig(config);
 
-  providerSelector.on(SelectRenderableEvents.ITEM_SELECTED, async (_: number, option: SelectOption) => {
-    const provider = option.value as Provider;
-    config.provider = provider;
-    saveConfig(config);
+      providerSetupModal?.close();
+      providerSetupModal = null;
+      renderer.root.remove("setup-container");
 
-    renderer.root.remove("setup-container");
-    providerSelector = null;
-
-    await showApiKeyInput(provider);
+      await showApiKeyInput(provider, {
+        onCancel: () => {
+          showProviderSetup()
+        },
+      });
+    },
   });
 
   const hint = new TextRenderable(renderer, {
@@ -241,88 +241,45 @@ ${fg("#64748b")("Use arrow keys to select | Enter to confirm | Ctrl+C to exit")}
     marginTop: 1,
   });
   container.add(hint);
-
-  renderer.keyInput.on("keypress", (key: KeyEvent) => {
-    if (key.ctrl && key.name === "c") {
-      renderer.destroy();
-      process.exit(0);
-    }
-  });
-
-  providerSelector.focus();
 }
 
-async function showApiKeyInput(provider: Provider) {
-  const container = new BoxRenderable(renderer, {
-    id: "apikey-container",
-    flexDirection: "column",
-    padding: 2,
-    width: "100%",
-    height: "100%",
-  });
-  renderer.root.add(container);
+async function showApiKeyInput(provider: Provider, options?: { onCancel?: () => void }) {
+  if (apiKeyModal) return
+  apiKeyModalOnCancel = options?.onCancel ?? null
 
-  const title = new TextRenderable(renderer, {
-    id: "apikey-title",
-    content: t`${bold(fg("#60a5fa")(`${getProviderDisplayName(provider)} Setup`))}`,
-    marginBottom: 1,
-  });
-  container.add(title);
+  const url = getApiKeyUrl(provider)
+  const extraText = provider === "opencode-zen"
+    ? "Tip: OpenCode Zen has free models like Kimi K2.6 and DeepSeek V4 Flash!"
+    : undefined
 
-  const url = getApiKeyUrl(provider);
-  const instructions = new TextRenderable(renderer, {
-    id: "apikey-instructions",
-    content: t`Get your API key from: ${fg("#22c55e")(url)}
+  apiKeyModal = openInputModal({
+    containerId: "apikey-modal",
+    title: `${getProviderDisplayName(provider)} Setup`,
+    width: 72,
+    height: provider === "opencode-zen" ? 13 : 11,
+    placeholder: provider === "openrouter" ? "API key or token" : "API token",
+    description: [
+      `Get your API key from: ${url}`,
+      "",
+      "Enter your API key below:",
+    ].join("\n"),
+    extraText,
+    onSubmit: (value: string) => {
+      const trimmed = value.trim()
+      if (!trimmed) return
 
-Enter your API key below:`,
-    marginBottom: 1,
-  });
-  container.add(instructions);
+      setApiKey(provider, trimmed)
 
-  const input = new InputRenderable(renderer, {
-    id: "api-key-input",
-    width: 70,
-    placeholder: provider === "openrouter" ? "sk-or-v1-..." : "API key or token",
-    backgroundColor: "#1e293b",
-    focusedBackgroundColor: "#334155",
-    textColor: "#f8fafc",
-    cursorColor: "#60a5fa",
-  });
-  container.add(input);
+      const providerModels = getProviderModels(provider)
+      currentModel = providerModels.find((m) => !m.disabled) || providerModels[0] || OPENCODE_ZEN_MODELS[0]
+      config.defaultModel = currentModel.id
+      saveConfig(config)
 
-  if (provider === "opencode-zen") {
-    const freeNote = new TextRenderable(renderer, {
-      id: "free-note",
-      content: t`
-${fg("#22c55e")("Tip:")} OpenCode Zen has free models like Kimi K2.6 and DeepSeek V4 Flash!`,
-      marginTop: 1,
-    });
-    container.add(freeNote);
-  }
+      closeApiKeyModal()
+      createMainUI()
+    },
+  })
 
-  const hint = new TextRenderable(renderer, {
-    id: "apikey-hint",
-    content: t`
-${fg("#64748b")("Press Enter to save | Ctrl+C to exit")}`,
-    marginTop: 1,
-  });
-  container.add(hint);
-
-  input.on(InputRenderableEvents.ENTER, (value: string) => {
-    if (value.trim()) {
-      setApiKey(provider, value.trim());
-
-      const providerModels = getProviderModels(provider);
-      currentModel = providerModels.find((m) => !m.disabled) || providerModels[0] || OPENCODE_ZEN_MODELS[0];
-      config.defaultModel = currentModel.id;
-      saveConfig(config);
-
-      renderer.root.remove("apikey-container");
-      createMainUI();
-    }
-  });
-
-  input.focus();
 }
 
 function createMainUI() {
@@ -441,13 +398,13 @@ function createMainUI() {
   });
   inputContainer.add(inputField);
 
-  // Input hint bar (inside the container, below textarea)
+  // Input hint bar (outside the border, below textarea)
   inputHintText = new TextRenderable(renderer, {
     id: "input-hint",
     content: getInputHintContent(),
     marginTop: 1,
   });
-  inputContainer.add(inputHintText);
+  mainContainer.add(inputHintText);
 
   // === Help Bar (bottom) ===
   helpBarText = new TextRenderable(renderer, {
@@ -483,7 +440,7 @@ function getHelpBarContent(): StyledText {
   if (awaitingConfirmation) {
     return t`${fg(theme.colors.warning)(">>> Cmd+Enter or Enter to execute <<<")} ${fg(theme.colors.textMuted)("|")} ${fg(theme.colors.error)("Esc")}${fg(theme.colors.textMuted)(" Cancel")} ${fg(theme.colors.primary)("e")}${fg(theme.colors.textMuted)(" Edit")} ${fg(theme.colors.primary)("c")}${fg(theme.colors.textMuted)(" Copy")}`;
   }
-  return t`${fg(theme.colors.primary)("Ctrl+P")}${fg(theme.colors.textMuted)(" Commands")}  ${fg(theme.colors.primary)("Ctrl+T")}${fg(theme.colors.textMuted)(" Think")}  ${fg(theme.colors.primary)("Ctrl+C")}${fg(theme.colors.textMuted)(" Exit")}  ${fg(theme.colors.primary)("Esc")}${fg(theme.colors.textMuted)(" Cancel")}`;
+  return t`${fg(theme.colors.primary)("Ctrl+P")}${fg(theme.colors.textMuted)(" Commands")}  ${fg(theme.colors.primary)("Ctrl+T")}${fg(theme.colors.textMuted)(" Think")}  ${fg(theme.colors.primary)("Ctrl+Y")}${fg(theme.colors.textMuted)(" Safety")}  ${fg(theme.colors.primary)("Ctrl+C")}${fg(theme.colors.textMuted)(" Exit")}  ${fg(theme.colors.primary)("Esc")}${fg(theme.colors.textMuted)(" Cancel")}`;
 }
 
 function getInputHintContent(): StyledText {
@@ -1109,7 +1066,10 @@ async function handleSpecialCommand(input: string) {
       break;
     case "thinking":
     case "think":
-      cycleThinkingLevel();
+      showThinkingSelector();
+      break;
+    case "safety":
+      showSafetySelector();
       break;
     case "config":
       await showConfig();
@@ -1147,7 +1107,8 @@ function clearChat() {
 function showHelp() {
   const helpText = `Shortcuts:
 Ctrl+P  Commands
-Ctrl+T  Cycle thinking level (low/medium/high/off)
+Ctrl+T  Select thinking level
+Ctrl+Y  Select safety level
 Ctrl+C  Exit magic-shell
 Ctrl+D  Exit magic-shell
 Esc     Cancel / Close popup
@@ -1161,7 +1122,8 @@ Q  Exit
 Commands (type ! or / followed by):
 help      Show this help      models    Change model
 provider  Switch provider     themes    Change theme
-dry       Toggle dry-run      thinking  Cycle thinking
+dry       Toggle dry-run      safety   Select safety
+thinking  Select thinking
 config    Show config         history   Show history
 clear     Clear chat          exit      Exit
 
@@ -1230,32 +1192,14 @@ function showHistory() {
 }
 
 async function switchProvider() {
-  // Show provider selector as a popup overlay (like model selector)
-  const container = new BoxRenderable(renderer, {
-    id: "provider-selector-container",
-    position: "absolute",
-    left: 2,
-    top: 4,
-    width: 65,
-    height: 15,
-    backgroundColor: "#1e293b",
-    border: true,
-    borderColor: "#60a5fa",
-    borderStyle: "single",
-    title: "Switch Provider",
-    titleAlignment: "center",
-    zIndex: 100,
-    padding: 1,
-  });
-  renderer.root.add(container);
+  if (providerModal) return;
 
-  // Check which providers have API keys configured
   const providers: Array<{ provider: Provider; description: string }> = [
-    { provider: "opencode-zen", description: "Curated models optimized for coding. Has free models!" },
-    { provider: "openrouter", description: "Access to many models from various providers" },
-    { provider: "vercel-ai-gateway", description: "Unified model gateway using AI_GATEWAY_API_KEY" },
-    { provider: "cloudflare-ai-gateway", description: "Cloudflare gateway for provider and Workers AI models" },
-    { provider: "workers-ai", description: "Cloudflare-hosted models via Workers AI" },
+    { provider: "opencode-zen", description: "Curated coding models with a generous free tier." },
+    { provider: "openrouter", description: "Broad model catalog across major providers." },
+    { provider: "vercel-ai-gateway", description: "Vercel-hosted gateway for managed model access." },
+    { provider: "cloudflare-ai-gateway", description: "Cloudflare gateway for provider and Workers AI routing." },
+    { provider: "workers-ai", description: "Cloudflare-hosted models with direct Workers AI access." },
   ];
 
   const options: SelectOption[] = await Promise.all(
@@ -1269,238 +1213,169 @@ async function switchProvider() {
     }),
   );
 
-  const selector = new SelectRenderable(renderer, {
-    id: "provider-switch-select",
-    width: "100%",
-    height: 9,
+  providerModal = openModalList({
+    containerId: "provider-selector-container",
+    selectorId: "provider-switch-select",
+    title: "Switch Provider",
+    width: 65,
     options,
-    backgroundColor: "transparent",
-    focusedBackgroundColor: "transparent",
-    selectedBackgroundColor: "#334155",
-    textColor: "#e2e8f0",
-    selectedTextColor: "#60a5fa",
-    descriptionColor: "#64748b",
-    selectedDescriptionColor: "#94a3b8",
-    showDescription: true,
-    wrapSelection: true,
+    selectedIndex: Math.max(0, providers.findIndex(({ provider }) => provider === config.provider)),
+    onSelect: async (_: number, option: SelectOption) => {
+      const newProvider = option.value as Provider;
+      const existingKey = await getApiKey(newProvider);
+
+      if (existingKey) {
+        config.provider = newProvider;
+        const models = getProviderModels(newProvider);
+        currentModel = models.find((m) => m.id === config.defaultModel) || models[0];
+        config.defaultModel = currentModel.id;
+        saveConfig(config);
+        statusBarText.content = getStatusBarContent();
+        closeProviderModal();
+
+        const providerName = getProviderDisplayName(newProvider);
+        addSystemMessage(`Switched to ${providerName}. Model: ${currentModel.name}`);
+      } else {
+        closeProviderModal();
+        await showApiKeyInput(newProvider);
+      }
+    },
   });
-  container.add(selector);
-
-  const closeSelector = () => {
-    renderer.root.remove("provider-selector-container");
-    inputField.focus();
-  };
-
-  selector.on(SelectRenderableEvents.ITEM_SELECTED, async (_: number, option: SelectOption) => {
-    const newProvider = option.value as Provider;
-    const existingKey = await getApiKey(newProvider);
-
-    if (existingKey) {
-      // Already have a key, just switch
-      config.provider = newProvider;
-      // Set default model for new provider
-      const models = getProviderModels(newProvider);
-      currentModel = models.find((m) => m.id === config.defaultModel) || models[0];
-      config.defaultModel = currentModel.id;
-      saveConfig(config);
-
-      // Update status bar to show new provider/model
-      statusBarText.content = getStatusBarContent();
-      closeSelector();
-
-      const providerName = getProviderDisplayName(newProvider);
-      addSystemMessage(`Switched to ${providerName}. Model: ${currentModel.name}`);
-    } else {
-      // Need to set up API key - go to full setup
-      closeSelector();
-      renderer.root.remove("main-container");
-      await showApiKeyInput(newProvider);
-    }
-  });
-
-  // Handle escape to close
-  const escHandler = (key: KeyEvent) => {
-    if (key.name === "escape") {
-      closeSelector();
-      renderer.keyInput.off("keypress", escHandler);
-    }
-  };
-  renderer.keyInput.on("keypress", escHandler);
-
-  selector.focus();
 }
 
 function showModelSelector() {
-  if (modelSelector) {
-    // Already open - don't create another instance
-    return;
-  }
+  if (modelModal) return;
 
-  const container = new BoxRenderable(renderer, {
-    id: "model-selector-container",
-    position: "absolute",
-    left: 2,
-    top: 4,
-    width: 75,
-    height: 22,
-    backgroundColor: "#1e293b",
-    border: true,
-    borderColor: "#60a5fa",
-    borderStyle: "single",
-    title: `Select Model (${getProviderDisplayName(config.provider)})`,
-    titleAlignment: "center",
-    zIndex: 100,
-    padding: 1,
-  });
-  renderer.root.add(container);
-
-  // Filter models by current provider, exclude disabled models, sort by cost tier
   const allModels = getProviderModels(config.provider);
   const availableModels = allModels.filter((m) => !m.disabled);
   const sortedModels = sortModelsByCost(availableModels);
-
-  // Get custom models
   const customModels = getCustomModels().sort((a, b) => a.name.localeCompare(b.name));
 
   const options: SelectOption[] = [
-    // Provider models first
     ...sortedModels.map((model) => ({
-      name: `${model.name} [${costTierLabel(model.cost)}]`,
+      name: `${getModelDisplayName(model)} [${costTierLabel(model.cost)}]`,
       description: model.description,
       value: model as Model | CustomModel,
     })),
-    // Custom models with "(custom)" label
     ...customModels.map((model) => ({
-      name: `${model.name} [custom]`,
+      name: `${model.name} [Custom]`,
       description: `${model.baseUrl} - ${model.modelId}`,
       value: model as Model | CustomModel,
     })),
   ];
 
-  modelSelector = new SelectRenderable(renderer, {
-    id: "model-select",
-    width: "100%",
-    height: 18,
+  modelModal = openModalList({
+    containerId: "model-selector-container",
+    selectorId: "model-select",
+    title: `Select Model (${getProviderDisplayName(config.provider)})`,
+    width: 75,
     options,
-    backgroundColor: "transparent",
-    focusedBackgroundColor: "transparent",
-    selectedBackgroundColor: "#334155",
-    textColor: "#e2e8f0",
-    selectedTextColor: "#60a5fa",
-    descriptionColor: "#64748b",
-    selectedDescriptionColor: "#94a3b8",
-    showDescription: true,
     showScrollIndicator: true,
-    wrapSelection: true,
+    selectedIndex: Math.max(0, options.findIndex((option) => (option.value as Model | CustomModel).id === currentModel.id)),
+    onSelect: (_: number, option: SelectOption) => {
+      currentModel = option.value as Model | CustomModel;
+      config.defaultModel = currentModel.id;
+      saveConfig(config);
+      statusBarText.content = getStatusBarContent();
+      closeModelModal();
+
+      const isCustom = isCustomModel(currentModel);
+      const freeBadge = isFreeModel(currentModel) ? " (FREE)" : "";
+      const customBadge = isCustom ? " (custom)" : "";
+      addSystemMessage(`Model changed to ${currentModel.name}${freeBadge}${customBadge}`);
+    },
   });
-  container.add(modelSelector);
-
-  modelSelector.on(SelectRenderableEvents.ITEM_SELECTED, (_: number, option: SelectOption) => {
-    currentModel = option.value as Model | CustomModel;
-    config.defaultModel = currentModel.id;
-    saveConfig(config);
-
-    // Update status bar to show new model
-    statusBarText.content = getStatusBarContent();
-
-    renderer.root.remove("model-selector-container");
-    modelSelector = null;
-    inputField.focus();
-
-    const isCustom = isCustomModel(currentModel);
-    const freeBadge = isFreeModel(currentModel) ? " (FREE)" : "";
-    const customBadge = isCustom ? " (custom)" : "";
-    addSystemMessage(`Model changed to ${currentModel.name}${freeBadge}${customBadge}`);
-  });
-
-  modelSelector.focus();
 }
 
-// Theme selector
-let themeSelector: SelectRenderable | null = null;
-
 function showThemeSelector() {
-  if (themeSelector) {
-    // Already open - don't create another instance
-    return;
-  }
+  if (themeModal) return;
 
   const currentTheme = getTheme();
-
-  // Center horizontally: (terminal width - container width) / 2
-  // Using a reasonable default for typical terminals
-  const themeContainerWidth = 45;
-  const terminalWidth = process.stdout.columns || 80;
-  const themeContainerLeft = Math.max(2, Math.floor((terminalWidth - themeContainerWidth) / 2));
-
-  const container = new BoxRenderable(renderer, {
-    id: "theme-selector-container",
-    position: "absolute",
-    left: themeContainerLeft,
-    top: 4,
-    width: themeContainerWidth,
-    height: themeNames.length + 4,
-    backgroundColor: currentTheme.colors.backgroundPanel,
-    border: true,
-    borderColor: currentTheme.colors.primary,
-    borderStyle: "single",
-    title: "Select Theme",
-    titleAlignment: "center",
-    zIndex: 100,
-    padding: 1,
-  });
-  renderer.root.add(container);
-
   const options: SelectOption[] = themeNames.map((name) => ({
     name: name === currentTheme.name ? `${name} (current)` : name,
     description: "",
     value: name,
   }));
 
-  themeSelector = new SelectRenderable(renderer, {
-    id: "theme-select",
-    width: "100%",
-    height: themeNames.length + 2,
+  themeModal = openModalList({
+    containerId: "theme-selector-container",
+    selectorId: "theme-select",
+    title: "Select Theme",
+    width: 45,
     options,
-    backgroundColor: "transparent",
-    focusedBackgroundColor: "transparent",
-    selectedBackgroundColor: currentTheme.colors.backgroundElement,
-    textColor: currentTheme.colors.text,
-    selectedTextColor: currentTheme.colors.primary,
-    descriptionColor: currentTheme.colors.textMuted,
-    selectedDescriptionColor: currentTheme.colors.textMuted,
     showDescription: false,
-    wrapSelection: true,
+    selectedIndex: Math.max(0, themeNames.findIndex((name) => name === currentTheme.name)),
+    onSelect: (_: number, option: SelectOption) => {
+      const themeName = option.value as string;
+      setTheme(themeName);
+      closeThemeModal();
+      refreshThemeColors();
+      addSystemMessage(`Theme changed to ${themeName}`);
+    },
   });
-  container.add(themeSelector);
+}
 
-  themeSelector.on(SelectRenderableEvents.ITEM_SELECTED, (_: number, option: SelectOption) => {
-    const themeName = option.value as string;
-    setTheme(themeName);
+function showSafetySelector(): void {
+  if (safetyModal) return;
 
-    renderer.root.remove("theme-selector-container");
-    themeSelector = null;
-
-    // Refresh all UI elements with new theme colors
-    refreshThemeColors();
-
-    addSystemMessage(`Theme changed to ${themeName}`);
-
-    inputField.focus();
-  });
-
-  // Handle escape to close
-  const escHandler = (key: KeyEvent) => {
-    if (key.name === "escape") {
-      renderer.root.remove("theme-selector-container");
-      themeSelector = null;
-      inputField.focus();
-      renderer.keyInput.off("keypress", escHandler);
-    }
+  const levels: Array<Config["safetyLevel"]> = ["strict", "moderate", "relaxed"];
+  const descriptions: Record<Config["safetyLevel"], string> = {
+    strict: "Confirm every potentially dangerous command.",
+    moderate: "Confirm high and critical risk commands.",
+    relaxed: "Only confirm critical risk commands.",
   };
-  renderer.keyInput.on("keypress", escHandler);
 
-  themeSelector.focus();
+  safetyModal = openModalList({
+    containerId: "safety-selector-container",
+    selectorId: "safety-select",
+    title: "Safety Level",
+    width: 58,
+    options: levels.map((level) => ({
+      name: level === config.safetyLevel ? `${level} (current)` : level,
+      description: descriptions[level],
+      value: level,
+    })),
+    selectedIndex: Math.max(0, levels.findIndex((level) => level === config.safetyLevel)),
+    onSelect: (_: number, option: SelectOption) => {
+      config.safetyLevel = option.value as Config["safetyLevel"];
+      saveConfig(config);
+      statusBarText.content = getStatusBarContent();
+      closeSafetyModal();
+      addSystemMessage(`Safety level: ${config.safetyLevel}`);
+    },
+  });
+}
+
+function showThinkingSelector(): void {
+  if (thinkingModal) return;
+
+  const levels: ThinkingLevel[] = ["low", "medium", "high", "off"];
+  const descriptions: Record<ThinkingLevel, string> = {
+    low: "Use light reasoning for supported models.",
+    medium: "Use balanced reasoning for supported models.",
+    high: "Use maximum reasoning for supported models.",
+    off: "Disable extra reasoning controls.",
+  };
+
+  thinkingModal = openModalList({
+    containerId: "thinking-selector-container",
+    selectorId: "thinking-select",
+    title: "Thinking Level",
+    width: 58,
+    options: levels.map((level) => ({
+      name: level === config.thinkingLevel ? `${level} (current)` : level,
+      description: descriptions[level],
+      value: level,
+    })),
+    selectedIndex: Math.max(0, levels.findIndex((level) => level === config.thinkingLevel)),
+    onSelect: (_: number, option: SelectOption) => {
+      config.thinkingLevel = option.value as ThinkingLevel;
+      saveConfig(config);
+      statusBarText.content = getStatusBarContent();
+      closeThinkingModal();
+      addSystemMessage(`Thinking level: ${config.thinkingLevel}`);
+    },
+  });
 }
 
 // Modal list state (shared by command palette and slash commands)
@@ -1513,45 +1388,46 @@ interface ModalListHandle {
   container: BoxRenderable;
   selector: SelectRenderable;
   updateOptions: (options: SelectOption[], selectedIndex?: number) => void;
-  setSelectedIndex: (index: number) => void;
   close: () => void;
 }
 
+interface InputModalHandle {
+  containerId: string;
+  container: BoxRenderable;
+  input: InputRenderable;
+  close: () => void;
+}
+
+let providerModal: ModalListHandle | null = null;
+let modelModal: ModalListHandle | null = null;
+let themeModal: ModalListHandle | null = null;
+let safetyModal: ModalListHandle | null = null;
+let thinkingModal: ModalListHandle | null = null;
 let commandPaletteModal: ModalListHandle | null = null;
 let slashCommandModal: ModalListHandle | null = null;
+let apiKeyModal: InputModalHandle | null = null;
+let apiKeyModalOnCancel: (() => void) | null = null;
 let commandPaletteQuery = "";
 let chordMode: "none" | "ctrl-x" = "none";
 
-interface PaletteCommand {
+interface AppCommand {
   name: string;
   description: string;
+  slash?: string;
   shortcut?: string;
   chord?: string;
   action: () => void | Promise<void>;
 }
 
-interface SlashCommand {
-  slash: string;
-  name: string;
-  description: string;
-  action: () => void | Promise<void>;
-}
+type PaletteCommand = AppCommand;
+type SlashCommand = AppCommand & { slash: string };
 
-function cycleThinkingLevel(): void {
-  const levels: ThinkingLevel[] = ["low", "medium", "high", "off"];
-  const currentIndex = levels.indexOf(config.thinkingLevel);
-  const nextIndex = (currentIndex + 1) % levels.length;
-  config.thinkingLevel = levels[nextIndex];
-  saveConfig(config);
-  statusBarText.content = getStatusBarContent();
-  addSystemMessage(`Thinking level: ${config.thinkingLevel}`);
-}
-
-function getCommandPaletteOptions(): PaletteCommand[] {
+function getAppCommands(): AppCommand[] {
   return [
     {
       name: "Change Model",
       description: `Current: ${currentModel.name}`,
+      slash: "models",
       shortcut: "Ctrl+X M",
       chord: "m",
       action: () => showModelSelector(),
@@ -1559,11 +1435,13 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     {
       name: "Switch Provider",
       description: `Current: ${getProviderDisplayName(config.provider)}`,
+      slash: "providers",
       action: () => switchProvider(),
     },
     {
       name: "Toggle Dry Run",
       description: dryRunMode ? "Currently ON" : "Currently OFF",
+      slash: "dry",
       action: () => {
         dryRunMode = !dryRunMode;
         statusBarText.content = getStatusBarContent();
@@ -1571,29 +1449,18 @@ function getCommandPaletteOptions(): PaletteCommand[] {
       },
     },
     {
-      name: "Cycle Safety Level",
+      name: "Select Safety Level",
       description: `Current: ${config.safetyLevel}`,
-      action: () => {
-        // Cycle: moderate -> strict -> relaxed -> moderate
-        const levels: Array<"strict" | "moderate" | "relaxed"> = ["moderate", "strict", "relaxed"];
-        const currentIndex = levels.indexOf(config.safetyLevel);
-        const nextIndex = (currentIndex + 1) % levels.length;
-        config.safetyLevel = levels[nextIndex];
-        saveConfig(config);
-        statusBarText.content = getStatusBarContent();
-        const descriptions: Record<string, string> = {
-          strict: "confirms ALL potentially dangerous commands",
-          moderate: "confirms high/critical severity commands",
-          relaxed: "only confirms critical commands",
-        };
-        addSystemMessage(`Safety level: ${config.safetyLevel} (${descriptions[config.safetyLevel]})`);
-      },
+      slash: "safety",
+      shortcut: "Ctrl+Y",
+      action: () => showSafetySelector(),
     },
     {
-      name: "Cycle Thinking Level",
+      name: "Select Thinking Level",
       description: `Current: ${config.thinkingLevel}`,
+      slash: "thinking",
       shortcut: "Ctrl+T",
-      action: () => cycleThinkingLevel(),
+      action: () => showThinkingSelector(),
     },
     {
       name: "Toggle Project Context",
@@ -1608,16 +1475,19 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     {
       name: "Show Config",
       description: "View current configuration",
+      slash: "config",
       action: () => showConfig(),
     },
     {
       name: "Show History",
       description: `${history.length} commands`,
+      slash: "history",
       action: () => showHistory(),
     },
     {
       name: "Change Theme",
       description: `Current: ${getTheme().name}`,
+      slash: "themes",
       shortcut: "Ctrl+X T",
       chord: "t",
       action: () => showThemeSelector(),
@@ -1625,16 +1495,19 @@ function getCommandPaletteOptions(): PaletteCommand[] {
     {
       name: "Clear Chat",
       description: "Clear the chat history",
+      slash: "clear",
       action: () => clearChat(),
     },
     {
       name: "Show Help",
       description: "View all commands and shortcuts",
+      slash: "help",
       action: () => showHelp(),
     },
     {
       name: "Exit",
       description: "Close magic-shell",
+      slash: "exit",
       shortcut: "Ctrl+D / Ctrl+X Q",
       chord: "q",
       action: () => {
@@ -1645,78 +1518,13 @@ function getCommandPaletteOptions(): PaletteCommand[] {
   ];
 }
 
-function getSlashCommands(): SlashCommand[] {
-  return [
-    {
-      slash: "help",
-      name: "Help",
-      description: "Show commands and shortcuts",
-      action: () => showHelp(),
-    },
-    {
-      slash: "models",
-      name: "Models",
-      description: `Change model · ${currentModel.name}`,
-      action: () => showModelSelector(),
-    },
-    {
-      slash: "providers",
-      name: "Providers",
-      description: `Switch provider · ${getProviderDisplayName(config.provider)}`,
-      action: () => switchProvider(),
-    },
-    {
-      slash: "themes",
-      name: "Themes",
-      description: `Change theme · ${getTheme().name}`,
-      action: () => showThemeSelector(),
-    },
-    {
-      slash: "dry",
-      name: "Dry Run",
-      description: dryRunMode ? "Turn dry-run off" : "Turn dry-run on",
-      action: () => {
-        dryRunMode = !dryRunMode;
-        statusBarText.content = getStatusBarContent();
-        addSystemMessage(`Dry-run mode: ${dryRunMode ? "ON" : "OFF"}`);
-      },
-    },
-    {
-      slash: "thinking",
-      name: "Thinking",
-      description: `Cycle thinking level · ${config.thinkingLevel}`,
-      action: () => cycleThinkingLevel(),
-    },
-    {
-      slash: "config",
-      name: "Config",
-      description: "Show current configuration",
-      action: () => showConfig(),
-    },
-    {
-      slash: "history",
-      name: "History",
-      description: `${history.length} commands`,
-      action: () => showHistory(),
-    },
-    {
-      slash: "clear",
-      name: "Clear",
-      description: "Clear the chat history",
-      action: () => clearChat(),
-    },
-    {
-      slash: "exit",
-      name: "Exit",
-      description: "Close magic-shell",
-      action: () => {
-        renderer.destroy();
-        process.exit(0);
-      },
-    },
-  ];
+function getCommandPaletteOptions(): PaletteCommand[] {
+  return getAppCommands();
 }
 
+function getSlashCommands(): SlashCommand[] {
+  return getAppCommands().filter((cmd): cmd is SlashCommand => Boolean(cmd.slash));
+}
 function getSlashCommandMatches(inputText: string): SlashCommand[] {
   if (!inputText.startsWith("/")) return [];
 
@@ -1735,17 +1543,39 @@ function openModalList(config: {
   selectorId: string;
   title: string;
   options: SelectOption[];
+  width?: number;
   focusList?: boolean;
   selectedIndex?: number;
+  showDescription?: boolean;
+  showScrollIndicator?: boolean;
   onSelect?: (index: number, option: SelectOption) => void | Promise<void>;
 }): ModalListHandle {
   const theme = getTheme();
-  const width = MODAL_LIST_WIDTH;
+  const width = config.width ?? MODAL_LIST_WIDTH;
   const termWidth = process.stdout.columns || 80;
   const left = Math.max(2, Math.floor((termWidth - width) / 2));
-  const itemCount = Math.max(config.options.length, 1);
-  const listHeight = Math.min(itemCount + 2, MODAL_LIST_MAX_ITEMS);
-  const containerHeight = listHeight + MODAL_LIST_FRAME_HEIGHT;
+  const visibleRows = Math.max(config.options.length, 1);
+  const maxRows = Math.max(4, (process.stdout.rows || 24) - 8);
+  const listHeight = Math.min(visibleRows, MODAL_LIST_MAX_ITEMS, maxRows);
+  const showDetail = config.showDescription !== false && config.options.some((option) => option.description);
+  const detailHeight = showDetail ? 2 : 0;
+  const containerHeight = listHeight + MODAL_LIST_FRAME_HEIGHT + detailHeight;
+  let currentOptions = config.options;
+  const formatDetail = (index: number): StyledText => {
+    const description = currentOptions[index]?.description;
+    if (!description || !showDetail) return t``;
+
+    const maxLength = Math.max(20, width - 16);
+    const text = description.length > maxLength
+      ? `${description.slice(0, maxLength - 1)}…`
+      : description;
+
+    return t`${fg(theme.colors.textMuted)(` ▶ ${text}`)}`;
+  };
+  const formatOptions = (options: SelectOption[]): SelectOption[] => options.map((option) => ({
+    ...option,
+    description: "",
+  }));
 
   const container = new BoxRenderable(renderer, {
     id: config.containerId,
@@ -1769,7 +1599,7 @@ function openModalList(config: {
     id: config.selectorId,
     width: "100%",
     height: listHeight,
-    options: config.options,
+    options: formatOptions(config.options),
     backgroundColor: "transparent",
     focusedBackgroundColor: "transparent",
     selectedBackgroundColor: theme.colors.backgroundElement,
@@ -1777,25 +1607,39 @@ function openModalList(config: {
     selectedTextColor: theme.colors.primary,
     descriptionColor: theme.colors.textMuted,
     selectedDescriptionColor: theme.colors.textMuted,
-    showDescription: true,
+    showDescription: false,
+    showScrollIndicator: config.showScrollIndicator ?? false,
     wrapSelection: true,
   });
   container.add(selector);
+
+  const detailText = showDetail
+    ? new TextRenderable(renderer, {
+      id: `${config.containerId}-detail`,
+      content: formatDetail(config.selectedIndex ?? 0),
+      marginTop: 1,
+    })
+    : null;
+  if (detailText) {
+    container.add(detailText);
+  }
 
   const handle: ModalListHandle = {
     containerId: config.containerId,
     container,
     selector,
     updateOptions(options, selectedIndex = 0) {
-      const count = Math.max(options.length, 1);
-      const newListHeight = Math.min(count + 2, MODAL_LIST_MAX_ITEMS);
-      selector.options = options;
+      currentOptions = options;
+      const rows = Math.max(options.length, 1);
+      const maxHeight = Math.max(4, (process.stdout.rows || 24) - 8);
+      const newListHeight = Math.min(rows, MODAL_LIST_MAX_ITEMS, maxHeight);
+      selector.options = formatOptions(options);
       selector.height = newListHeight;
-      container.height = newListHeight + MODAL_LIST_FRAME_HEIGHT;
+      container.height = newListHeight + MODAL_LIST_FRAME_HEIGHT + detailHeight;
       selector.setSelectedIndex(Math.min(selectedIndex, Math.max(options.length - 1, 0)));
-    },
-    setSelectedIndex(index: number) {
-      selector.setSelectedIndex(index);
+      if (detailText) {
+        detailText.content = formatDetail(selector.getSelectedIndex());
+      }
     },
     close() {
       renderer.root.remove(config.containerId);
@@ -1805,18 +1649,109 @@ function openModalList(config: {
 
   if (config.onSelect) {
     selector.on(SelectRenderableEvents.ITEM_SELECTED, async (index: number, option: SelectOption) => {
-      await config.onSelect?.(index, option);
+      await config.onSelect?.(index, currentOptions[index] ?? option);
     });
   }
 
+  selector.on(SelectRenderableEvents.SELECTION_CHANGED, (index: number) => {
+    if (detailText) {
+      detailText.content = formatDetail(index);
+    }
+  });
+
   const initialIndex = config.selectedIndex ?? 0;
+  selector.setSelectedIndex(initialIndex);
   if (config.focusList !== false) {
     selector.focus();
-  } else {
-    selector.setSelectedIndex(initialIndex);
   }
 
   return handle;
+}
+
+function openInputModal(config: {
+  containerId: string;
+  title: string;
+  placeholder: string;
+  description: string;
+  extraText?: string;
+  hintText?: string;
+  width?: number;
+  height?: number;
+  onSubmit: (value: string) => void;
+}): InputModalHandle {
+  const theme = getTheme()
+  const width = config.width ?? 72
+  const termWidth = process.stdout.columns || 80
+  const left = Math.max(2, Math.floor((termWidth - width) / 2))
+
+  const container = new BoxRenderable(renderer, {
+    id: config.containerId,
+    position: "absolute",
+    left,
+    top: 3,
+    width,
+    height: config.height ?? 11,
+    backgroundColor: theme.colors.backgroundPanel,
+    border: true,
+    borderColor: theme.colors.primary,
+    borderStyle: "single",
+    title: config.title,
+    titleAlignment: "center",
+    zIndex: 200,
+    padding: 1,
+  })
+  renderer.root.add(container)
+
+  const description = new TextRenderable(renderer, {
+    id: `${config.containerId}-description`,
+    content: t`${fg(theme.colors.text)(config.description)}`,
+    marginBottom: 1,
+  })
+  container.add(description)
+
+  const input = new InputRenderable(renderer, {
+    id: `${config.containerId}-input`,
+    width: "100%",
+    placeholder: config.placeholder,
+    backgroundColor: theme.colors.backgroundElement,
+    focusedBackgroundColor: theme.colors.backgroundElement,
+    textColor: theme.colors.text,
+    cursorColor: theme.colors.primary,
+  })
+  container.add(input)
+
+  if (config.extraText) {
+    const extra = new TextRenderable(renderer, {
+      id: `${config.containerId}-extra`,
+      content: t`${fg(theme.colors.success)(config.extraText)}`,
+      marginTop: 1,
+    })
+    container.add(extra)
+  }
+
+  const hint = new TextRenderable(renderer, {
+    id: `${config.containerId}-hint`,
+    content: t`${fg(theme.colors.textMuted)(config.hintText ?? "Press Enter to save | Esc to cancel | Ctrl+C to exit")}`,
+    marginTop: 1,
+  })
+  container.add(hint)
+
+  input.on(InputRenderableEvents.ENTER, (value: string) => {
+    config.onSubmit(value)
+  })
+
+  const handle: InputModalHandle = {
+    containerId: config.containerId,
+    container,
+    input,
+    close() {
+      renderer.root.remove(config.containerId)
+      inputField?.focus()
+    },
+  }
+
+  input.focus()
+  return handle
 }
 
 function getSlashCommandSelectOptions(): SelectOption[] {
@@ -1827,10 +1762,52 @@ function getSlashCommandSelectOptions(): SelectOption[] {
   }));
 }
 
-function closeSlashCommandMenu(): void {
+function closeProviderModal(): void {
+  if (!providerModal) return;
+  providerModal.close();
+  providerModal = null;
+}
+
+function closeModelModal(): void {
+  if (!modelModal) return;
+  modelModal.close();
+  modelModal = null;
+}
+
+function closeThemeModal(): void {
+  if (!themeModal) return;
+  themeModal.close();
+  themeModal = null;
+}
+
+function closeSafetyModal(): void {
+  if (!safetyModal) return;
+  safetyModal.close();
+  safetyModal = null;
+}
+
+function closeThinkingModal(): void {
+  if (!thinkingModal) return;
+  thinkingModal.close();
+  thinkingModal = null;
+}
+
+function closeApiKeyModal(invokeCancel = false): void {
+  if (!apiKeyModal) return
+  apiKeyModal.close()
+  apiKeyModal = null
+  const onCancel = apiKeyModalOnCancel
+  apiKeyModalOnCancel = null
+  if (invokeCancel) onCancel?.()
+}
+
+function closeSlashCommandMenu(dismissCurrentInput = false): void {
   if (slashCommandModal) {
     slashCommandModal.close();
     slashCommandModal = null;
+  }
+  if (dismissCurrentInput) {
+    slashCommandDismissedInput = inputField?.editBuffer.getText() ?? null;
   }
   slashCommandMatches = [];
   slashCommandSelectedIndex = 0;
@@ -1843,6 +1820,13 @@ function updateSlashCommandModalOptions(): void {
 
 function syncSlashCommandMenu(): void {
   const inputText = inputField.editBuffer.getText();
+  if (slashCommandDismissedInput !== null) {
+    if (inputText === slashCommandDismissedInput) {
+      return;
+    }
+    slashCommandDismissedInput = null;
+  }
+
   const matches = getSlashCommandMatches(inputText);
 
   if (matches.length === 0) {
@@ -1962,7 +1946,12 @@ function handleKeypress(key: KeyEvent) {
   }
 
   if (key.ctrl && key.name === "t") {
-    cycleThinkingLevel();
+    showThinkingSelector();
+    return;
+  }
+
+  if (key.ctrl && key.name === "y") {
+    showSafetySelector();
     return;
   }
 
@@ -2007,21 +1996,33 @@ function handleKeypress(key: KeyEvent) {
       closeCommandPalette();
       return;
     }
-    if (slashCommandMatches.length > 0) {
-      closeSlashCommandMenu();
+    if (slashCommandModal) {
+      closeSlashCommandMenu(true);
       return;
     }
-    if (modelSelector) {
-      renderer.root.remove("model-selector-container");
-      modelSelector = null;
-      inputField.focus();
+    if (providerModal) {
+      closeProviderModal();
       return;
     }
-    if (themeSelector) {
-      renderer.root.remove("theme-selector-container");
-      themeSelector = null;
-      inputField.focus();
+    if (modelModal) {
+      closeModelModal();
       return;
+    }
+    if (themeModal) {
+      closeThemeModal();
+      return;
+    }
+    if (safetyModal) {
+      closeSafetyModal();
+      return;
+    }
+    if (thinkingModal) {
+      closeThinkingModal();
+      return;
+    }
+    if (apiKeyModal) {
+      closeApiKeyModal(true)
+      return
     }
     if (awaitingConfirmation && pendingMessageId) {
       clearCommandState();
@@ -2040,15 +2041,33 @@ function handleKeypress(key: KeyEvent) {
       closeCommandPalette();
       return;
     }
-    if (slashCommandMatches.length > 0) {
-      closeSlashCommandMenu();
+    if (slashCommandModal) {
+      closeSlashCommandMenu(true);
       return;
     }
-    if (modelSelector) {
-      renderer.root.remove("model-selector-container");
-      modelSelector = null;
-      inputField.focus();
+    if (providerModal) {
+      closeProviderModal();
       return;
+    }
+    if (modelModal) {
+      closeModelModal();
+      return;
+    }
+    if (themeModal) {
+      closeThemeModal();
+      return;
+    }
+    if (safetyModal) {
+      closeSafetyModal();
+      return;
+    }
+    if (thinkingModal) {
+      closeThinkingModal();
+      return;
+    }
+    if (apiKeyModal) {
+      closeApiKeyModal(true)
+      return
     }
 
     if (awaitingConfirmation && pendingMessageId) {
@@ -2093,7 +2112,7 @@ function handleKeypress(key: KeyEvent) {
   }
 
   // 'o' to toggle expand/collapse on the most recent result message
-  if (key.name === "o" && !awaitingConfirmation && !commandPaletteModal && !modelSelector) {
+  if (key.name === "o" && !awaitingConfirmation && !commandPaletteModal && !modelModal) {
     toggleLastResultExpand();
   }
 }

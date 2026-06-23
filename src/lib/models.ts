@@ -10,7 +10,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "deepseek/deepseek-v4-flash:free",
     name: "DeepSeek V4 Flash (Free)",
-    description: "DeepSeek's fast open-source model on OpenRouter's free tier (rate-limited)",
+    description: "Fast DeepSeek coding model on OpenRouter's free tier.",
     category: "fast",
     provider: "openrouter",
     contextLength: 1048576,
@@ -19,7 +19,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "deepseek/deepseek-v4-flash",
     name: "DeepSeek V4 Flash",
-    description: "DeepSeek's latest fast open-source model",
+    description: "Fast DeepSeek coding model with a large context window.",
     category: "fast",
     provider: "openrouter",
     contextLength: 1048576,
@@ -28,7 +28,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "z-ai/glm-5.2",
     name: "GLM 5.2",
-    description: "Z.ai's latest fast GLM model",
+    description: "Fast GLM model for low-cost command generation.",
     category: "fast",
     provider: "openrouter",
     contextLength: 202752,
@@ -37,7 +37,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "moonshotai/kimi-k2.7-code",
     name: "Kimi K2.7 Code",
-    description: "Moonshot's latest open-weight coding model",
+    description: "Open-weight coding model for larger code tasks.",
     category: "smart",
     provider: "openrouter",
     contextLength: 262144,
@@ -46,7 +46,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "deepseek/deepseek-v4-pro",
     name: "DeepSeek V4 Pro",
-    description: "DeepSeek's latest high-context open-source model",
+    description: "High-context DeepSeek model for larger code tasks.",
     category: "smart",
     provider: "openrouter",
     contextLength: 1048576,
@@ -55,7 +55,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "anthropic/claude-sonnet-4.6",
     name: "Claude Sonnet 4.6",
-    description: "Anthropic's latest Sonnet model",
+    description: "Balanced Claude model for harder coding tasks.",
     category: "smart",
     provider: "openrouter",
     contextLength: 1000000,
@@ -64,7 +64,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "openai/gpt-5.5",
     name: "GPT 5.5",
-    description: "OpenAI's latest flagship GPT model",
+    description: "Flagship GPT model for complex shell tasks.",
     category: "smart",
     provider: "openrouter",
     contextLength: 1050000,
@@ -73,7 +73,7 @@ export const OPENROUTER_MODELS: Model[] = [
   {
     id: "anthropic/claude-opus-4.8",
     name: "Claude Opus 4.8",
-    description: "Anthropic's latest Opus model",
+    description: "Top Claude reasoning model for complex tasks.",
     category: "reasoning",
     provider: "openrouter",
     contextLength: 1000000,
@@ -85,7 +85,7 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   {
     id: "openai/gpt-5.5",
     name: "GPT 5.5",
-    description: "OpenAI's latest flagship GPT model",
+    description: "Flagship GPT model for complex shell tasks.",
     category: "smart",
     provider: "vercel-ai-gateway",
     contextLength: 1050000,
@@ -94,7 +94,7 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   {
     id: "anthropic/claude-sonnet-4.6",
     name: "Claude Sonnet 4.6",
-    description: "Anthropic's latest Sonnet model",
+    description: "Balanced Claude model for harder coding tasks.",
     category: "smart",
     provider: "vercel-ai-gateway",
     contextLength: 1000000,
@@ -103,7 +103,7 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   {
     id: "anthropic/claude-opus-4.8",
     name: "Claude Opus 4.8",
-    description: "Anthropic's latest Opus model",
+    description: "Top Claude reasoning model for complex tasks.",
     category: "reasoning",
     provider: "vercel-ai-gateway",
     contextLength: 1000000,
@@ -124,7 +124,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   {
     id: "openai/gpt-5.5",
     name: "GPT 5.5",
-    description: "OpenAI's latest flagship GPT model through Cloudflare AI Gateway",
+    description: "Flagship GPT model for complex shell tasks. through Cloudflare AI Gateway",
     category: "smart",
     provider: "cloudflare-ai-gateway",
     contextLength: 1050000,
@@ -133,7 +133,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   {
     id: "anthropic/claude-sonnet-4-6",
     name: "Claude Sonnet 4.6",
-    description: "Anthropic's latest Sonnet model through Cloudflare AI Gateway",
+    description: "Balanced Claude model for harder coding tasks. through Cloudflare AI Gateway",
     category: "smart",
     provider: "cloudflare-ai-gateway",
     contextLength: 1000000,
@@ -142,7 +142,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   {
     id: "anthropic/claude-opus-4-8",
     name: "Claude Opus 4.8",
-    description: "Anthropic's latest Opus model through Cloudflare AI Gateway",
+    description: "Top Claude reasoning model for complex tasks. through Cloudflare AI Gateway",
     category: "reasoning",
     provider: "cloudflare-ai-gateway",
     contextLength: 1000000,
@@ -185,7 +185,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "deepseek-v4-flash-free",
     name: "DeepSeek V4 Flash Free",
-    description: "DeepSeek's free fast open-source model (limited time)",
+    description: "Free DeepSeek coding model with a large context window.",
     category: "fast",
     provider: "opencode-zen",
     zenApiType: "openai-compatible",
@@ -195,7 +195,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "gpt-5-nano",
     name: "GPT 5 Nano",
-    description: "OpenAI's lightweight GPT model",
+    description: "Lowest-cost GPT for quick edits and simple commands.",
     category: "fast",
     provider: "opencode-zen",
     zenApiType: "openai-responses",
@@ -205,7 +205,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "claude-haiku-4-5",
     name: "Claude Haiku 4.5",
-    description: "Anthropic's latest fast model",
+    description: "Fast Claude model for quick command generation.",
     category: "fast",
     provider: "opencode-zen",
     zenApiType: "anthropic",
@@ -215,7 +215,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "gemini-3.5-flash",
     name: "Gemini 3.5 Flash",
-    description: "Google's latest fast Gemini model",
+    description: "Fast Gemini model with a large context window.",
     category: "fast",
     provider: "opencode-zen",
     zenApiType: "google",
@@ -225,7 +225,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "claude-sonnet-4-6",
     name: "Claude Sonnet 4.6",
-    description: "Anthropic's latest Sonnet model",
+    description: "Balanced Claude model for harder coding tasks.",
     category: "smart",
     provider: "opencode-zen",
     zenApiType: "anthropic",
@@ -235,7 +235,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "gpt-5.5",
     name: "GPT 5.5",
-    description: "OpenAI's latest flagship GPT model",
+    description: "Flagship GPT model for complex shell tasks.",
     category: "smart",
     provider: "opencode-zen",
     zenApiType: "openai-responses",
@@ -245,7 +245,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   {
     id: "claude-opus-4-8",
     name: "Claude Opus 4.8",
-    description: "Anthropic's latest Opus model",
+    description: "Top Claude reasoning model for complex tasks.",
     category: "reasoning",
     provider: "opencode-zen",
     zenApiType: "anthropic",

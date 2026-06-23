@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       width: 1200px;
       height: 630px;
@@ -16,105 +19,138 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', monospace;
       overflow: hidden;
       position: relative;
     }
-    
-    /* Subtle grid pattern */
+
+    /* Gradient orbs — matches the hero */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: #fab283;
+      top: -220px;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0.12;
+    }
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: #5c9cf5;
+      bottom: -140px;
+      left: 18%;
+      opacity: 0.08;
+    }
+
+    /* Grid pattern — matches the hero */
     body::before {
       content: '';
       position: absolute;
       inset: 0;
-      background-image: 
+      background-image:
         linear-gradient(rgba(37, 37, 37, 0.3) 1px, transparent 1px),
         linear-gradient(90deg, rgba(37, 37, 37, 0.3) 1px, transparent 1px);
       background-size: 60px 60px;
-      opacity: 0.2;
-      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 70%);
-      -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 70%);
+      opacity: 0.25;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 10%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 10%, transparent 70%);
     }
-    
+
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 32px;
+      gap: 28px;
       z-index: 1;
       padding: 80px;
+      position: relative;
     }
-    
-    .brand-icon {
-      width: 80px;
-      height: 80px;
-      background: #0a0a0a;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(250, 178, 131, 0.2);
-      box-shadow: 
-        0 0 0 1px rgba(250, 178, 131, 0.1),
-        0 8px 40px rgba(0, 0, 0, 0.7),
-        0 0 40px rgba(250, 178, 131, 0.08);
-    }
-    
-    .icon-text {
-      font-size: 32px;
+
+    /* Brand mark — matches the sticky nav */
+    .brand-mark {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      font-size: 28px;
       font-weight: 700;
-      color: #fab283;
-      text-shadow: 0 0 20px rgba(250, 178, 131, 0.5);
+      letter-spacing: -0.01em;
     }
-    
-    .brand-name {
-      font-size: 72px;
+    .brand-mark .dollar { color: #fab283; }
+    .brand-mark .name { color: #f0f0f0; }
+
+    /* Headline — matches the hero title */
+    .headline {
+      text-align: center;
+      font-size: 68px;
       font-weight: 700;
-      color: #eeeeee;
+      line-height: 1.1;
       letter-spacing: -0.03em;
     }
-    
-    .tagline {
-      font-size: 28px;
-      color: #b0b0b0;
-      text-align: center;
-      line-height: 1.5;
-      font-weight: 400;
+    .headline .line-1 {
+      display: block;
+      color: #f0f0f0;
     }
-    
-    .terminal-preview {
-      margin-top: 16px;
+    .headline .line-2 {
+      display: block;
+      background: linear-gradient(135deg, #fab283 0%, #f5a742 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Terminal preview — matches the demo window */
+    .terminal {
+      margin-top: 8px;
       background: #0a0a0a;
-      border: 1px solid rgba(37, 37, 37, 0.8);
-      border-radius: 8px;
-      padding: 20px 24px;
-      font-size: 18px;
-      color: #b0b0b0;
+      border: 1px solid #252525;
+      border-radius: 12px;
+      padding: 20px 28px;
+      font-size: 22px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      gap: 14px;
+      box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 10px 30px -5px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
     }
-    
-    .prompt {
+    .terminal .prompt {
       color: #fab283;
       font-weight: 600;
     }
-    
-    .command {
-      color: #5c9cf5;
+    .terminal .cmd {
+      color: #f0f0f0;
+    }
+    .terminal .arrow {
+      color: #7fd88f;
+    }
+    .terminal .out {
+      color: #b8b8b8;
     }
   </style>
 </head>
 <body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
   <div class="container">
-    <div class="brand-icon">
-      <span class="icon-text">$_</span>
+    <div class="brand-mark">
+      <span class="dollar">$</span>
+      <span class="name">msh</span>
     </div>
-    <h1 class="brand-name">magic-shell</h1>
-    <p class="tagline">Type what you mean.<br>Execute what you need.</p>
-    <div class="terminal-preview">
+    <h1 class="headline">
+      <span class="line-1">Talk to your terminal.</span>
+      <span class="line-2">In plain English.</span>
+    </h1>
+    <div class="terminal">
       <span class="prompt">$</span>
-      <span class="command">msh "find all large files"</span>
+      <span class="cmd">msh "undo my last commit"</span>
     </div>
   </div>
 </body>

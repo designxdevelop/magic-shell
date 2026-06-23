@@ -146,3 +146,7 @@ bun run build
 ```
 
 No test framework is configured yet.
+
+---
+
+Built by [Austin Thesing](https://github.com/austin-thesing) · A [Design X Develop LLC](https://designxdevelop.com) project

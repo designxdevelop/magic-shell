@@ -17,7 +17,7 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/austin-thesing/magic-shell",
+          href: "https://github.com/designxdevelop/magic-shell",
         },
       ],
       customCss: ["./src/styles/starlight-custom.css"],

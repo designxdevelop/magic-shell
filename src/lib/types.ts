@@ -44,6 +44,7 @@ export {
   WORKERS_AI_MODELS,
   OPENCODE_ZEN_MODELS,
   ALL_MODELS,
+  getConfiguredModel,
   getProviderModels,
   getProviderDisplayName,
   sortModelsByCost,

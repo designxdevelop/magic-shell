@@ -25,6 +25,7 @@ import {
   CLOUDFLARE_AI_GATEWAY_MODELS,
   WORKERS_AI_MODELS,
   ALL_MODELS,
+  getConfiguredModel,
   getProviderDisplayName,
   getProviderModels,
   sortModelsByCost,
@@ -527,7 +528,7 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
 
   // Find current model - check custom models first
   const customModel = await getCustomModel(config.defaultModel);
-  const builtInModel = ALL_MODELS.find((m) => m.id === config.defaultModel);
+  const builtInModel = getConfiguredModel(config);
   const fallbackModels = getProviderModels(config.provider);
   const model = customModel || builtInModel || fallbackModels[0] || OPENCODE_ZEN_MODELS[0];
 
@@ -809,7 +810,9 @@ async function main() {
       return;
     }
 
-    const model = ALL_MODELS.find((m) => m.id === modelId);
+    const config = loadConfig();
+    const model = getProviderModels(config.provider).find((m) => m.id === modelId)
+      || ALL_MODELS.find((m) => m.id === modelId);
     if (!model) {
       console.error(`${colors.error}Unknown model: ${modelId}${colors.reset}`);
       console.error(`Run ${colors.primary}msh --models${colors.reset} to see available models.`);
@@ -820,7 +823,6 @@ async function main() {
       console.error(`Run ${colors.primary}msh --models${colors.reset} to see available models.`);
       process.exit(1);
     }
-    const config = loadConfig();
     config.defaultModel = modelId;
     config.provider = model.provider;
     saveConfig(config);

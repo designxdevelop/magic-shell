@@ -25,6 +25,7 @@ import { cwd as getCwd } from "process";
 import {
   ALL_MODELS,
   OPENCODE_ZEN_MODELS,
+  getConfiguredModel,
   getProviderDisplayName,
   getProviderModels,
   sortModelsByCost,
@@ -138,7 +139,7 @@ async function main() {
   if (customModel) {
     currentModel = customModel;
   } else {
-    const savedModel = ALL_MODELS.find((m) => m.id === config.defaultModel);
+    const savedModel = getConfiguredModel(config);
     if (savedModel) {
       currentModel = savedModel;
     }

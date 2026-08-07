@@ -4,9 +4,9 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
-    id: "inclusionai/ling-3.0-flash:free",
-    name: "Ling 3.0 Flash (Free)",
-    description: "Fast open-weight model available on OpenRouter's free tier.",
+    id: "inclusionai/ling-3.0-tiny:free",
+    name: "Ling 3.0 Tiny (Free)",
+    description: "Current fast open-weight model available on OpenRouter's free tier.",
     category: "fast",
     provider: "openrouter",
     contextLength: 262144,
@@ -111,6 +111,15 @@ export const OPENROUTER_MODELS: Model[] = [
     contextLength: 1000000,
     cost: "premium",
   },
+  {
+    id: "anthropic/claude-fable-5",
+    name: "Claude Fable 5",
+    description: "Anthropic's most capable widely available model for long-running agents.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "premium",
+  },
 ]
 
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
@@ -121,6 +130,7 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
       "openai/gpt-5.6-sol",
       "anthropic/claude-sonnet-5",
       "anthropic/claude-opus-5",
+      "anthropic/claude-fable-5",
     ].includes(model.id),
   ).map((model) => ({ ...model, provider: "vercel-ai-gateway" as const })),
 ]
@@ -144,12 +154,12 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
 
 export const WORKERS_AI_MODELS: Model[] = [
   {
-    id: "@cf/meta/llama-3.1-8b-instruct",
-    name: "Llama 3.1 8B Instruct",
-    description: "Lightweight open-weight Llama instruct model hosted by Workers AI.",
+    id: "@cf/zai-org/glm-4.7-flash",
+    name: "GLM 4.7 Flash",
+    description: "Fast multilingual open-weight model optimized for tool calling.",
     category: "fast",
     provider: "workers-ai",
-    contextLength: 8000,
+    contextLength: 131072,
     cost: "lower-cost",
   },
   {
@@ -159,6 +169,24 @@ export const WORKERS_AI_MODELS: Model[] = [
     category: "smart",
     provider: "workers-ai",
     contextLength: 24000,
+    cost: "lower-cost",
+  },
+  {
+    id: "@cf/moonshotai/kimi-k2.7-code",
+    name: "Kimi K2.7 Code",
+    description: "Open-weight coding model with tool calling and structured outputs.",
+    category: "reasoning",
+    provider: "workers-ai",
+    contextLength: 262144,
+    cost: "lower-cost",
+  },
+  {
+    id: "@cf/meta/llama-4-scout-17b-16e-instruct",
+    name: "Llama 4 Scout",
+    description: "Open-weight mixture-of-experts model with function calling.",
+    category: "smart",
+    provider: "workers-ai",
+    contextLength: 131072,
     cost: "lower-cost",
   },
   {
@@ -184,8 +212,8 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     cost: "free",
   },
   {
-    id: "ling-3.0-flash-free",
-    name: "Ling 3.0 Flash (Free)",
+    id: "ling-3.0-tiny-free",
+    name: "Ling 3.0 Tiny (Free)",
     description: "Current free fast model on OpenCode Zen.",
     category: "fast",
     provider: "opencode-zen",
@@ -251,6 +279,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     id: "claude-opus-5",
     name: "Claude Opus 5",
     description: "Latest top-tier Claude model for complex reasoning.",
+    category: "reasoning",
+    provider: "opencode-zen",
+    zenApiType: "anthropic",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
+    id: "claude-fable-5",
+    name: "Claude Fable 5",
+    description: "Anthropic's most capable widely available model for long-running agents.",
     category: "reasoning",
     provider: "opencode-zen",
     zenApiType: "anthropic",

@@ -11,6 +11,7 @@ import {
   SelectRenderableEvents,
   ScrollBoxRenderable,
   type CliRenderer,
+  type BaseRenderable,
   type KeyEvent,
   type SelectOption,
   type StyledText,
@@ -102,6 +103,11 @@ let awaitingConfirmation = false;
 // Helper to generate message IDs
 function generateMessageId(): string {
   return `msg-${++messageIdCounter}`;
+}
+
+function removeRenderableById(parent: BaseRenderable, id: string): void {
+  const child = parent.getRenderable(id)
+  if (child) parent.remove(child)
 }
 
 function isFreeModel(model: Model | CustomModel): model is Model & { cost: "free" } {
@@ -230,7 +236,7 @@ async function showProviderSetup() {
 
       providerSetupModal?.close();
       providerSetupModal = null;
-      renderer.root.remove("setup-container");
+      removeRenderableById(renderer.root, "setup-container");
 
       await showApiKeyInput(provider, {
         onCancel: () => {
@@ -793,7 +799,7 @@ function updateAssistantMessage(msgId: string, updates: Partial<ChatMessage>): v
   Object.assign(msg, updates);
 
   // Re-render the message by removing and re-adding
-  chatScrollBox.remove(`msg-${msgId}`);
+  removeRenderableById(chatScrollBox, `msg-${msgId}`);
   const theme = getTheme();
   const newBox = createMessageRenderable(msg, theme);
   // Insert at correct position (after user message)
@@ -808,7 +814,7 @@ function updateResultMessage(msgId: string, updates: Partial<ChatMessage>): void
   Object.assign(msg, updates);
 
   // Re-render the message
-  chatScrollBox.remove(`msg-${msgId}`);
+  removeRenderableById(chatScrollBox, `msg-${msgId}`);
   const theme = getTheme();
   const newBox = createMessageRenderable(msg, theme);
   chatScrollBox.add(newBox);
@@ -968,7 +974,7 @@ async function translateAndProcess(input: string) {
     const command = await translateToCommand(apiKey, currentModel, input, currentCwd, history, config.repoContext, config);
 
     // Remove the loading message
-    chatScrollBox.remove(`msg-${loadingMsg.id}`);
+    removeRenderableById(chatScrollBox, `msg-${loadingMsg.id}`);
     chatMessages = chatMessages.filter((m) => m.id !== loadingMsg.id);
 
     // Analyze safety
@@ -988,7 +994,7 @@ async function translateAndProcess(input: string) {
     }
   } catch (error) {
     // Remove loading message on error
-    chatScrollBox.remove(`msg-${loadingMsg.id}`);
+    removeRenderableById(chatScrollBox, `msg-${loadingMsg.id}`);
     chatMessages = chatMessages.filter((m) => m.id !== loadingMsg.id);
 
     const message = error instanceof Error ? error.message : String(error);
@@ -1183,7 +1189,7 @@ function clearChat() {
   closeSlashCommandMenu();
   // Remove all messages from scroll box and array
   for (const msg of chatMessages) {
-    chatScrollBox.remove(`msg-${msg.id}`);
+    removeRenderableById(chatScrollBox, `msg-${msg.id}`);
   }
   chatMessages = [];
   // Add fresh welcome message
@@ -1744,7 +1750,7 @@ function openModalList(config: {
       }
     },
     close() {
-      renderer.root.remove(config.containerId);
+      removeRenderableById(renderer.root, config.containerId);
       inputField?.focus();
     },
   };
@@ -1847,7 +1853,7 @@ function openInputModal(config: {
     container,
     input,
     close() {
-      renderer.root.remove(config.containerId)
+      removeRenderableById(renderer.root, config.containerId)
       inputField?.focus()
     },
   }

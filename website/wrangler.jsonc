@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "magic-shell-website",
   "account_id": "443d20e37c03fd9af4ee799444a4569e",
-  "compatibility_date": "2026-02-09",
+  "compatibility_date": "2026-08-08",
   "assets": {
     "directory": "./dist"
   },

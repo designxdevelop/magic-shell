@@ -1,19 +1,11 @@
 import { expect, test } from "bun:test"
 
-import { formatExecutedCommand } from "./lib/format"
 import {
   ALL_MODELS,
   OPENCODE_ZEN_MODELS,
   getConfiguredModel,
   getProviderModels,
 } from "./lib/models"
-
-test("formats executed command before command output", () => {
-  const output = formatExecutedCommand("bun upgrade --stable", { dim: "", reset: "" })
-
-  expect(output).toContain("Command:")
-  expect(output).toContain("bun upgrade --stable")
-})
 
 test("built-in model metadata is complete and unique within each provider", () => {
   const keys = new Set<string>()

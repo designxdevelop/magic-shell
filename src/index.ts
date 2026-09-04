@@ -26,6 +26,7 @@ import {
   WORKERS_AI_MODELS,
   ALL_MODELS,
   getConfiguredModel,
+  getApiKeyUrl,
   getProviderDisplayName,
   getProviderModels,
   sortModelsByCost,
@@ -43,7 +44,6 @@ import {
   formatUpdateBannerLines,
   shouldRunStartupUpdateCheck,
 } from "./lib/update-checker";
-import { formatExecutedCommand } from "./lib/format";
 
 // Load theme from config
 loadTheme();
@@ -206,23 +206,6 @@ function validateApiKey(key: string, provider: Provider): string | null {
   }
 
   return null;
-}
-
-function getApiKeyUrl(provider: Provider): string {
-  switch (provider) {
-    case "opencode-zen":
-      return "https://opencode.ai/auth";
-    case "openrouter":
-      return "https://openrouter.ai/keys";
-    case "vercel-ai-gateway":
-      return "https://vercel.com/docs/ai-gateway";
-    case "cloudflare-ai-gateway":
-      return "https://developers.cloudflare.com/ai-gateway/";
-    case "workers-ai":
-      return "https://dash.cloudflare.com/profile/api-tokens";
-    case "custom":
-      return "";
-  }
 }
 
 async function setup() {
@@ -584,7 +567,7 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
         process.exit(1);
       }
 
-      console.error(formatExecutedCommand(command, colors));
+      console.error(`${colors.dim}Command:${colors.reset} ${command}`);
       const result = await executeCommand(command);
       process.exit(result.code);
     } else {

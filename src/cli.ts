@@ -27,6 +27,7 @@ import {
   ALL_MODELS,
   OPENCODE_ZEN_MODELS,
   getConfiguredModel,
+  getApiKeyUrl,
   getProviderDisplayName,
   getProviderModels,
   sortModelsByCost,
@@ -72,22 +73,6 @@ let chatScrollBox: ScrollBoxRenderable;
 let inputField: TextareaRenderable;
 let inputContainer: BoxRenderable;
 
-function getApiKeyUrl(provider: Provider): string {
-  switch (provider) {
-    case "opencode-zen":
-      return "https://opencode.ai/auth";
-    case "openrouter":
-      return "https://openrouter.ai/keys";
-    case "vercel-ai-gateway":
-      return "https://vercel.com/docs/ai-gateway";
-    case "cloudflare-ai-gateway":
-      return "https://developers.cloudflare.com/ai-gateway/";
-    case "workers-ai":
-      return "https://dash.cloudflare.com/profile/api-tokens";
-    case "custom":
-      return "";
-  }
-}
 let inputHintText: TextRenderable;
 let helpBarText: TextRenderable;
 let slashCommandMatches: SlashCommand[] = [];

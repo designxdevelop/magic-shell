@@ -523,6 +523,23 @@ export function getProviderDisplayName(provider: Provider): string {
   }
 }
 
+export function getApiKeyUrl(provider: Provider): string {
+  switch (provider) {
+    case "opencode-zen":
+      return "https://opencode.ai/auth"
+    case "openrouter":
+      return "https://openrouter.ai/keys"
+    case "vercel-ai-gateway":
+      return "https://vercel.com/docs/ai-gateway"
+    case "cloudflare-ai-gateway":
+      return "https://developers.cloudflare.com/ai-gateway/"
+    case "workers-ai":
+      return "https://dash.cloudflare.com/profile/api-tokens"
+    case "custom":
+      return ""
+  }
+}
+
 const COST_TIER_ORDER: Record<CostTier, number> = { free: 0, "lower-cost": 1, premium: 2 }
 const CATEGORY_ORDER: Record<Model["category"], number> = { fast: 0, smart: 1, reasoning: 2 }
 

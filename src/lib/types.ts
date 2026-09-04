@@ -47,6 +47,7 @@ export {
   getConfiguredModel,
   getProviderModels,
   getProviderDisplayName,
+  getApiKeyUrl,
   sortModelsByCost,
 } from "./models";
 

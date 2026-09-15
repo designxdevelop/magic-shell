@@ -13,6 +13,7 @@
     "preview": "astro preview",
     "deploy": "npm run build && wrangler deploy",
     "deploy:dry-run": "npm run build && wrangler deploy --dry-run",
+    "pretypecheck": "npm run models:generate",
     "typecheck": "astro check",
     "astro": "astro"
   },

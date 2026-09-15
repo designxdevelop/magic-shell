@@ -1,8 +1,35 @@
 import type { Config, CostTier, Model, Provider } from "./types"
 
-// Curated August 2026. Keep this list compact: current free/open-weight options,
+// Curated September 2026. Keep this list compact: current free/open-weight options,
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
+  {
+    id: "openai/gpt-6-astra",
+    name: "GPT 6 Astra",
+    description: "OpenAI's flagship model for complex reasoning and coding.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "premium",
+  },
+  {
+    id: "deepseek/deepseek-v4.1-flash",
+    name: "DeepSeek V4.1 Flash",
+    description: "Efficient open-weight model for coding and reasoning with native vision.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "nex-agi/nex-n2.5-mini:free",
+    name: "Nex N2.5 Mini (Free)",
+    description: "Free open-weight model for agentic coding tasks.",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 262144,
+    cost: "free",
+  },
   {
     id: "inclusionai/ling-3.0-tiny:free",
     name: "Ling 3.0 Tiny (Free)",
@@ -175,6 +202,15 @@ export const OPENROUTER_MODELS: Model[] = [
     cost: "premium",
   },
   {
+    id: "anthropic/claude-fable-5.1",
+    name: "Claude Fable 5.1",
+    description: "Anthropic's latest model for demanding reasoning and long-running agents.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
     id: "anthropic/claude-fable-5",
     name: "Claude Fable 5",
     description: "Anthropic's most capable widely available model for long-running agents.",
@@ -189,10 +225,13 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   ...OPENROUTER_MODELS.filter((model) =>
     [
       "openai/gpt-5.6-luna",
+      "openai/gpt-6-astra",
+      "deepseek/deepseek-v4.1-flash",
       "openai/gpt-5.6-terra",
       "openai/gpt-5.6-sol",
       "anthropic/claude-sonnet-5",
       "anthropic/claude-opus-5",
+      "anthropic/claude-fable-5.1",
       "anthropic/claude-fable-5",
     ].includes(model.id),
   ).map((model) => ({ ...model, provider: "vercel-ai-gateway" as const })),
@@ -253,7 +292,10 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
     contextLength: 32000,
     cost: "lower-cost",
   },
-  ...VERCEL_AI_GATEWAY_MODELS.map((model) => ({
+  // Only propagate new releases after Cloudflare lists the corresponding route.
+  ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
+    !["openai/gpt-6-astra", "deepseek/deepseek-v4.1-flash"].includes(model.id),
+  ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,
     provider: "cloudflare-ai-gateway" as const,
@@ -445,6 +487,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   },
   ...[
     ["gpt-5.6-luna", "GPT 5.6 Luna", "fast", "lower-cost"],
+    ["gpt-6-astra", "GPT 6 Astra", "reasoning", "premium"],
     ["gpt-5.6-terra", "GPT 5.6 Terra", "smart", "premium"],
     ["gpt-5.6-sol", "GPT 5.6 Sol", "reasoning", "premium"],
   ].map(([id, name, category, cost]) => ({
@@ -471,6 +514,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     id: "claude-opus-5",
     name: "Claude Opus 5",
     description: "Latest top-tier Claude model for complex reasoning.",
+    category: "reasoning",
+    provider: "opencode-zen",
+    zenApiType: "anthropic",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
+    id: "claude-fable-5-1",
+    name: "Claude Fable 5.1",
+    description: "Anthropic's latest model for demanding reasoning and long-running agents.",
     category: "reasoning",
     provider: "opencode-zen",
     zenApiType: "anthropic",

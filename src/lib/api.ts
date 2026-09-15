@@ -132,6 +132,7 @@ function supportsThinkingControl(modelId: string): boolean {
   return (
     modelId.includes("thinking") ||
     modelId.includes("gpt-5") ||
+    modelId.includes("gpt-6") ||
     modelId.includes("claude-") ||
     modelId.includes("gemini-")
   );
@@ -230,6 +231,7 @@ function buildAiSdkProviderOptions(modelId: string, thinkingLevel: ThinkingLevel
 }
 
 function shouldOmitTemperature(modelId: string, thinkingLevel: ThinkingLevel): boolean {
+  if (modelId.includes("gpt-6")) return true;
   return thinkingLevel !== "off" && (modelId.startsWith("claude-") || modelId.includes("gpt-5"));
 }
 

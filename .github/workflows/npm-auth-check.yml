@@ -1,0 +1,39 @@
+name: Check npm token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Verify npm authentication and package access
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::The NPM_TOKEN repository secret is missing."
+            exit 1
+          fi
+          npm whoami --registry=https://registry.npmjs.org --fetch-retries=0
+          npm access list packages --json --registry=https://registry.npmjs.org --fetch-retries=0 > "$RUNNER_TEMP/npm-access.json"
+          node --input-type=module <<'JS'
+          import { readFileSync, appendFileSync } from 'node:fs'
+          const access = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/npm-access.json`, 'utf8'))
+          const permission = access['@austinthesing/magic-shell']
+          if (permission !== 'read-write') {
+            throw new Error(`Expected read-write package access; received ${permission ?? 'no access'}`)
+          }
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            'npm authentication succeeded and the account reports read-write access to Magic Shell. No package was published. Token-specific publish restrictions, expiry, and 2FA requirements still need verification during a real publish.\n')
+          JS

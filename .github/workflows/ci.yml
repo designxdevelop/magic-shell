@@ -25,6 +25,9 @@ jobs:
       - name: Type check
         run: bun run typecheck
 
+      - name: Test
+        run: bun test
+
       - name: Build
         run: bun run build
 
@@ -63,7 +66,10 @@ jobs:
   # Auto-create version tag when package.json version changes on main
   auto-tag:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: test
+    needs: [test, website]
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      tag: v${{ steps.version.outputs.current }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       contents: write
@@ -71,17 +77,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Check for version change
         id: version
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
           # Get current version from package.json
           CURRENT_VERSION=$(jq -r '.version' package.json)
           echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
           # Get previous version from the commit before
-          git show HEAD~1:package.json > /tmp/prev-package.json 2>/dev/null || echo '{"version":"0.0.0"}' > /tmp/prev-package.json
+          git show "$BEFORE_SHA:package.json" > /tmp/prev-package.json 2>/dev/null || echo '{"version":"0.0.0"}' > /tmp/prev-package.json
           PREV_VERSION=$(jq -r '.version' /tmp/prev-package.json)
           echo "previous=$PREV_VERSION" >> $GITHUB_OUTPUT
 
@@ -116,4 +124,14 @@ jobs:
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
           echo "Created and pushed tag: $TAG"
-          echo "This tag push will automatically trigger the Release workflow"
+          echo "CI invokes the reusable Release workflow after this job"
+
+  release:
+    needs: auto-tag
+    if: needs.auto-tag.outputs.changed == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.auto-tag.outputs.tag }}
+    secrets: inherit

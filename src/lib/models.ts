@@ -294,7 +294,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    !["openai/gpt-6-astra", "deepseek/deepseek-v4.1-flash"].includes(model.id),
+    model.id !== "deepseek/deepseek-v4.1-flash",
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,

@@ -4,6 +4,42 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
+    id: "xiaomi/mimo-v2.6-flash",
+    name: "MiMo V2.6 Flash",
+    description: "Xiaomi's open-source mixture-of-experts model with long-context support.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "openai/gpt-6-luna",
+    name: "GPT 6 Luna",
+    description: "Efficient GPT-6 model for focused, high-volume tasks.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "lower-cost",
+  },
+  {
+    id: "openai/gpt-6-sol",
+    name: "GPT 6 Sol",
+    description: "GPT-6 model for complex coding and agentic workflows.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "premium",
+  },
+  {
+    id: "anthropic/claude-opus-5.5",
+    name: "Claude Opus 5.5",
+    description: "Claude model for agentic coding with always-on adaptive thinking.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
     id: "openai/gpt-6-astra",
     name: "GPT 6 Astra",
     description: "OpenAI's flagship model for complex reasoning and coding.",
@@ -226,6 +262,10 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
     [
       "openai/gpt-5.6-luna",
       "openai/gpt-6-astra",
+      "openai/gpt-6-luna",
+      "xiaomi/mimo-v2.6-flash",
+      "openai/gpt-6-sol",
+      "anthropic/claude-opus-5.5",
       "deepseek/deepseek-v4.1-flash",
       "openai/gpt-5.6-terra",
       "openai/gpt-5.6-sol",
@@ -294,7 +334,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    model.id !== "deepseek/deepseek-v4.1-flash",
+    !["deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash"].includes(model.id),
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,
@@ -488,6 +528,8 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
   ...[
     ["gpt-5.6-luna", "GPT 5.6 Luna", "fast", "lower-cost"],
     ["gpt-6-astra", "GPT 6 Astra", "reasoning", "premium"],
+    ["gpt-6-luna", "GPT 6 Luna", "fast", "lower-cost"],
+    ["gpt-6-sol", "GPT 6 Sol", "reasoning", "premium"],
     ["gpt-5.6-terra", "GPT 5.6 Terra", "smart", "premium"],
     ["gpt-5.6-sol", "GPT 5.6 Sol", "reasoning", "premium"],
   ].map(([id, name, category, cost]) => ({
@@ -500,6 +542,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     contextLength: 1050000,
     cost: cost as CostTier,
   })),
+  {
+    id: "claude-opus-5-5",
+    name: "Claude Opus 5.5",
+    description: "Claude model for agentic coding with always-on adaptive thinking.",
+    category: "reasoning",
+    provider: "opencode-zen",
+    zenApiType: "anthropic",
+    contextLength: 1000000,
+    cost: "premium",
+  },
   {
     id: "claude-sonnet-5",
     name: "Claude Sonnet 5",

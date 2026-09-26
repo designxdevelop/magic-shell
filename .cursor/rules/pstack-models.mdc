@@ -1,0 +1,30 @@
+---
+description: pstack per-role model choices (cloud-safe; committed into repos)
+alwaysApply: true
+---
+# pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.
+# CLOUD-SAFE: only slugs from ~/.config/git/hooks/pstack-cloud-allowlist.txt.
+# Mac-local preferences live in ~/.cursor/rules/pstack-models.mdc and are NOT committed.
+# POLICY: prefer the newest CreateAgent-catalog generation in each family unless explicitly overridden
+#   (e.g. Gemini 3.8 Flash not 3.7; Grok 4.7 not 4.6; Opus 5.5 not older Opus). No Mac-only open-weight IDs here.
+# budget: small–medium (medium ceiling)
+# Grok 4.7: never *-fast; only low/medium. Opus 5.5 low/medium for judgment.
+# Throughput: gemini-3.8-flash-* and muse-spark-1.3-* for exploration/swarm/tooling/arena arms.
+feature, refactoring: grok-4.7-low
+bug-fix: grok-4.7-low
+perf-issue: grok-4.7-medium
+hillclimb: grok-4.7-medium
+judgment and prose: claude-opus-5-5-medium
+hardest tasks: claude-opus-5-5-medium
+how explorer: gemini-3.8-flash-medium
+how explainer: claude-opus-5-5-medium
+why investigators: gemini-3.8-flash-medium
+why synthesizer: claude-opus-5-5-medium
+reflect tooling: muse-spark-1.3-medium
+reflect judgment, divergent, synthesizer: claude-opus-5-5-medium
+arena runners: gemini-3.8-flash-medium, muse-spark-1.3-medium, gemini-3.8-flash-low, grok-4.7-low
+arena cross-judge pool: claude-opus-5-5-medium, grok-4.7-medium, muse-spark-1.3-medium, claude-opus-5-5-low
+swarm workers: gemini-3.8-flash-low, muse-spark-1.3-low
+architect runners: gemini-3.8-flash-medium, muse-spark-1.3-medium, claude-opus-5-5-medium, grok-4.7-medium
+interrogate reviewers: claude-opus-5-5-medium, muse-spark-1.3-medium, gemini-3.8-flash-medium, grok-4.7-medium

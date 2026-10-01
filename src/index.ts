@@ -512,8 +512,12 @@ async function translate(query: string, options: { execute?: boolean; dryRun?: b
   // Find current model - check custom models first
   const customModel = await getCustomModel(config.defaultModel);
   const builtInModel = getConfiguredModel(config);
-  const fallbackModels = getProviderModels(config.provider);
-  const model = customModel || builtInModel || fallbackModels[0] || OPENCODE_ZEN_MODELS[0];
+  const model = customModel || builtInModel;
+  if (!model) {
+    console.error(`${colors.red}Error: No supported default model configured.${colors.reset}`);
+    console.error(`Run: ${colors.cyan}msh --setup${colors.reset}`);
+    process.exit(1);
+  }
 
   // Check if we need an API key
   if (!customModel && !apiKey) {

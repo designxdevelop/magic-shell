@@ -2,6 +2,7 @@ import { homedir } from "os";
 import { join } from "path";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import type { Config, CommandHistory, Provider, CustomModel } from "./types";
+import { getConfiguredModel, getProviderDefaultModel } from "./models";
 import { deleteSecret, getSecret, setSecret, isSecureStorageAvailable } from "./keychain";
 
 const CONFIG_DIR = join(homedir(), ".magic-shell");
@@ -24,7 +25,7 @@ const DEFAULT_CONFIG: Config = {
   workersAiApiKey: "", // Only used as fallback if keychain unavailable
   cloudflareAccountId: "",
   cloudflareAiGatewayId: "default",
-  defaultModel: "deepseek-v4-flash-free", // Current free OpenCode Zen model
+  defaultModel: getProviderDefaultModel("opencode-zen")!.id,
   thinkingLevel: "low",
   safetyLevel: "moderate",
   dryRunByDefault: false,
@@ -59,7 +60,22 @@ export function loadConfig(): Config {
   try {
     const data = readFileSync(CONFIG_FILE, "utf-8");
     const loaded = JSON.parse(data) as Partial<Config>;
-    return { ...DEFAULT_CONFIG, ...loaded };
+    const config = { ...DEFAULT_CONFIG, ...loaded };
+    // Keep custom selections (including legacy configs) and valid built-in IDs.
+    const isCustom = config.customModels?.some((model) => model.id === config.defaultModel);
+    if (config.provider !== "custom" && !isCustom && !getConfiguredModel(config)) {
+      const fallback = getProviderDefaultModel(config.provider);
+      if (fallback) {
+        config.defaultModel = fallback.id;
+        try {
+          // Only migrate the model ID; preserve credentials and unrelated settings.
+          writeFileSync(CONFIG_FILE, JSON.stringify({ ...loaded, defaultModel: fallback.id }, null, 2));
+        } catch {
+          // A read-only config should still use the supported model this session.
+        }
+      }
+    }
+    return config;
   } catch {
     return { ...DEFAULT_CONFIG };
   }

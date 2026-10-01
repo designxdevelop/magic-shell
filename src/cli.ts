@@ -133,6 +133,9 @@ async function main() {
     const savedModel = getConfiguredModel(config);
     if (savedModel) {
       currentModel = savedModel;
+    } else {
+      console.error("No supported default model configured. Run msh --setup or select a custom model with msh --model <id>.");
+      process.exit(1);
     }
   }
 

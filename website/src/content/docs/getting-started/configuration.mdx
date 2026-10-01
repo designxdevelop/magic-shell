@@ -48,6 +48,8 @@ msh --remove-model my-local-llama
 
 Magic Shell stores configuration in `~/.magic-shell/config.json`:
 
+On startup, Magic Shell checks saved built-in model IDs against the model catalog shipped with the installed version. If an update removes or disables your default model, Magic Shell selects an enabled default from the same provider and saves the corrected ID. Valid selections and custom models are preserved.
+
 ```json
 {
   "provider": "opencode-zen",

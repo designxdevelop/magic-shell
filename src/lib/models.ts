@@ -476,16 +476,6 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     cost: "free",
   },
   {
-    id: "laguna-s-2.1-free",
-    name: "Laguna S 2.1 (Free)",
-    description: "Open-weight coding model for long-horizon agentic work.",
-    category: "reasoning",
-    provider: "opencode-zen",
-    zenApiType: "openai-compatible",
-    contextLength: 262144,
-    cost: "free",
-  },
-  {
     id: "minimax-m3",
     name: "MiniMax M3",
     description: "Current open-weight MiniMax model for efficient agentic tasks.",
@@ -614,7 +604,11 @@ export function getProviderModels(provider: Provider): Model[] {
 }
 
 export function getConfiguredModel(config: Pick<Config, "provider" | "defaultModel">): Model | undefined {
-  return getProviderModels(config.provider).find((model) => model.id === config.defaultModel)
+  return getProviderModels(config.provider).find((model) => model.id === config.defaultModel && !model.disabled)
+}
+
+export function getProviderDefaultModel(provider: Provider): Model | undefined {
+  return getProviderModels(provider).find((model) => !model.disabled)
 }
 
 export function getProviderDisplayName(provider: Provider): string {

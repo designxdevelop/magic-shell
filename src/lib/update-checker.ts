@@ -1,7 +1,8 @@
 import { spawn } from "child_process"
 import { homedir } from "os"
-import { join } from "path"
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
+import { join, dirname, posix } from "path"
+import { existsSync, readFileSync, writeFileSync, mkdirSync, realpathSync } from "fs"
+import packageMetadata from "../../package.json"
 
 const PACKAGE_NAME = "@austinthesing/magic-shell"
 const NPM_REGISTRY_URL = `https://registry.npmjs.org/${PACKAGE_NAME}/latest`
@@ -61,25 +62,8 @@ function saveUpdateState(state: UpdateCheckState): void {
 }
 
 function getCurrentVersion(): string {
-  try {
-    const packagePaths = [
-      join(__dirname, "../../package.json"),
-      join(__dirname, "../../../package.json"),
-      join(process.cwd(), "package.json"),
-    ]
-
-    for (const path of packagePaths) {
-      if (existsSync(path)) {
-        const pkg = JSON.parse(readFileSync(path, "utf-8"))
-        if (pkg.name === PACKAGE_NAME || pkg.name === "magic-shell") {
-          return pkg.version
-        }
-      }
-    }
-  } catch {
-    // Ignore errors
-  }
-  return "0.0.0"
+  // Bundle our own metadata; runtime paths and the caller's cwd are unrelated.
+  return packageMetadata.version
 }
 
 function compareVersions(a: string, b: string): number {
@@ -116,26 +100,55 @@ async function fetchLatestVersion(): Promise<string | null> {
   }
 }
 
-function commandExists(command: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const checker =
-      process.platform === "win32"
-        ? spawn("where", [command], { stdio: "ignore" })
-        : spawn("command", ["-v", command], { stdio: "ignore", shell: true })
-
-    checker.on("close", (code) => resolve(code === 0))
-    checker.on("error", () => resolve(false))
-  })
+interface UpdateTarget {
+  command: string
+  args: string[]
+  env?: Record<string, string>
 }
 
-async function resolveUpdateCommand(): Promise<string> {
-  if (await commandExists("bun")) {
-    return `bun update -g ${PACKAGE_NAME}`
+export function getUpdateTarget(packageRoot: string, version = "latest"): UpdateTarget | null {
+  const normalized = packageRoot.replaceAll("\\", "/")
+  const packageSpec = `${PACKAGE_NAME}@${version}`
+  if (/\/pnpm\/global\//.test(normalized)) {
+    // pnpm's current global-dir may differ from this versioned installation.
+    // Require a manual update rather than risk creating another global copy.
+    return null
   }
-  if (await commandExists("npm")) {
-    return `npm install -g ${PACKAGE_NAME}@latest`
+  if (/\/install\/global\/node_modules\//.test(normalized)) {
+    // Preserve custom BUN_INSTALL roots as well as ~/.bun.
+    const globalRoot = posix.dirname(posix.dirname(posix.dirname(normalized)))
+    return { command: "bun", args: ["add", "-g", packageSpec], env: { BUN_INSTALL: posix.dirname(posix.dirname(globalRoot)) } }
   }
-  return `bun update -g ${PACKAGE_NAME}`
+  if (normalized.endsWith(`/node_modules/${PACKAGE_NAME}`)) {
+    const parent = posix.dirname(posix.dirname(posix.dirname(normalized)))
+    const prefix = posix.basename(parent) === "lib" ? posix.dirname(parent) : parent
+    return { command: "npm", args: ["install", "-g", "--prefix", prefix, packageSpec] }
+  }
+  return null
+}
+
+function resolveUpdateTarget(version = "latest"): UpdateTarget | null {
+  try {
+    let directory = dirname(realpathSync(process.argv[1]))
+    while (dirname(directory) !== directory) {
+      const metadata = join(directory, "package.json")
+      if (existsSync(metadata)) {
+        const pkg = JSON.parse(readFileSync(metadata, "utf8"))
+        if (pkg.name === PACKAGE_NAME) return getUpdateTarget(directory, version)
+      }
+      directory = dirname(directory)
+    }
+  } catch {
+    // An unknown/local installation must not update an unrelated global copy.
+  }
+  return null
+}
+
+function formatUpdateCommand(target: UpdateTarget | null): string {
+  if (!target) return "Update this installation manually with its package manager."
+  return [target.command, ...target.args].map((arg) =>
+    /^[\w@./:=+-]+$/.test(arg) ? arg : JSON.stringify(arg),
+  ).join(" ")
 }
 
 async function buildUpdateInfo(latestVersion: string): Promise<UpdateInfo> {
@@ -143,7 +156,7 @@ async function buildUpdateInfo(latestVersion: string): Promise<UpdateInfo> {
     hasUpdate: true,
     currentVersion: getCurrentVersion(),
     latestVersion,
-    updateCommand: await resolveUpdateCommand(),
+    updateCommand: formatUpdateCommand(resolveUpdateTarget(latestVersion)),
   }
 }
 
@@ -156,7 +169,7 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
   const currentVersion = getCurrentVersion()
   const now = Date.now()
 
-  if (now - state.lastCheck < CHECK_INTERVAL_MS) {
+  if (now - state.lastCheck < CHECK_INTERVAL_MS && (!state.latestVersion || compareVersions(state.latestVersion, currentVersion) >= 0)) {
     if (state.latestVersion && compareVersions(state.latestVersion, currentVersion) > 0) {
       if (state.dismissed === state.latestVersion) {
         return null
@@ -203,14 +216,20 @@ export async function forceCheckForUpdates(): Promise<UpdateInfo | null> {
   return checkForUpdates()
 }
 
-export async function performUpdate(): Promise<{ success: boolean; output: string }> {
-  const updateCommand = await resolveUpdateCommand()
+export async function performUpdate(version = "latest"): Promise<{ success: boolean; output: string }> {
+  const target = resolveUpdateTarget(version)
+  if (!target) return { success: false, output: "Cannot identify this installation's package manager; update it manually." }
+  const updateCommand = formatUpdateCommand(target)
 
   return new Promise((resolve) => {
-    const child = spawn(updateCommand, {
+    const child = process.platform === "win32" ? spawn(updateCommand, {
       shell: true,
       stdio: ["ignore", "pipe", "pipe"],
-      env: process.env,
+      env: { ...process.env, ...target.env },
+    }) : spawn(target.command, target.args, {
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, ...target.env },
     })
 
     let stdout = ""
@@ -281,7 +300,7 @@ export async function processUpdateCheck(options: {
   }
 
   if (install || autoUpdate) {
-    const result = await performUpdate()
+    const result = await performUpdate(update.latestVersion)
     if (result.success) {
       dismissUpdate(update.latestVersion)
     }

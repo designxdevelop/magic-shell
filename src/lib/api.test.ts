@@ -18,3 +18,13 @@ test("GPT 6 Luna and Sol retain reasoning and omit temperature", () => {
     expect(shouldOmitTemperature(id, "off")).toBe(true);
   }
 });
+
+test("GPT 5.6 Luna omits temperature even when thinking options are off", () => {
+  for (const id of ["gpt-5.6-luna", "openai/gpt-5.6-luna"]) {
+    for (const level of ["off", "low", "medium", "high"] as const) {
+      expect(shouldOmitTemperature(id, level)).toBe(true);
+    }
+  }
+  expect(buildAiSdkProviderOptions("gpt-5.6-luna", "off")).toBeUndefined();
+  expect(shouldOmitTemperature("deepseek-v4-flash-free", "off")).toBe(false);
+});

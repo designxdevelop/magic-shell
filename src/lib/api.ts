@@ -236,8 +236,9 @@ export function buildAiSdkProviderOptions(modelId: string, thinkingLevel: Thinki
 
 export function shouldOmitTemperature(modelId: string, thinkingLevel: ThinkingLevel): boolean {
   if (/claude-opus-5[.-]5/.test(modelId)) return true;
-  if (modelId.includes("gpt-6")) return true;
-  return thinkingLevel !== "off" && (modelId.startsWith("claude-") || modelId.includes("gpt-5"));
+  // "off" omits reasoning options; the provider may still default to reasoning.
+  if (modelId.includes("gpt-5") || modelId.includes("gpt-6")) return true;
+  return thinkingLevel !== "off" && modelId.startsWith("claude-");
 }
 
 // OpenRouter API

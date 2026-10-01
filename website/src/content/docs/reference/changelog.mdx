@@ -3,6 +3,17 @@ title: Changelog
 description: Release notes and version history for Magic Shell
 ---
 
+## v1.2.0 - Reliable Updates from Any Directory
+
+Magic Shell now knows which installation you're running and updates that copy. Run `msh` from your home directory, a project, or anywhere else: version checks no longer depend on the folder you're in.
+
+- **Correct version reporting.** `msh --version` reports the version built into the CLI. It no longer falls back to `0.0.0` or picks up a different version from a nearby project.
+- **Updates that stay in place.** Automatic updates use npm for npm installs and Bun for supported Bun installs, preserving the installation location. Having Bun on your PATH no longer makes an npm install try to update through Bun. pnpm and unrecognized layouts require a manual update rather than risking another global copy.
+- **No stale downgrade prompts.** A cached version older than the installed build triggers a fresh registry check. Updates install the version identified by that check.
+- **Cleaner GPT requests.** GPT 5 reasoning models no longer receive an unsupported temperature setting when thinking options are off, preventing the AI SDK warning.
+
+Your saved model selection, API keys, and command-safety settings are preserved. This release includes regression coverage for version reporting from empty or unrelated folders, installation paths with spaces, competing package managers, and stale update caches.
+
 ## v1.1.8 - Default Model Recovery
 
 - Repair saved defaults when a model is removed or disabled in an updated catalog, choosing an enabled model from the same provider and saving the corrected ID.

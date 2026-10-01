@@ -7,17 +7,27 @@ import ThemeShowcase from "../components/ThemeShowcase.astro";
 import SafetyLevels from "../components/SafetyLevels.astro";
 import TerminalWindow from "../components/TerminalWindow.astro";
 import SectionHeader from "../components/SectionHeader.astro";
+import { currentVersion, releaseTitle, releaseSummary } from "../lib/release";
 ---
 
 <Landing title="Magic Shell - Natural Language to Terminal Commands">
   <TransformHero />
+
+  <section class="release-preview container" aria-labelledby="release-title">
+    <div>
+      <p class="release-label">Latest release · v{currentVersion}</p>
+      <h2 id="release-title">{releaseTitle}</h2>
+      <p class="release-summary">{releaseSummary}</p>
+    </div>
+    <a href="/reference/changelog/" class="release-link">Read the changelog →</a>
+  </section>
 
   <!-- Features Section -->
   <section class="section features" id="features">
     <div class="container">
       <SectionHeader
         eyebrow="01 — Capabilities"
-        title="Magic Shell 1.0 is here"
+        title="Your terminal, in plain English"
         subtitle="Unified palettes, slash commands, explicit safety, and faster model switching—so you stop memorizing flags and just type."
       />
 
@@ -233,7 +243,7 @@ import SectionHeader from "../components/SectionHeader.astro";
         <div class="footer-brand">
           <span class="footer-logo">$ msh</span>
           <p class="footer-tagline">Type what you mean. Execute what you need.</p>
-          <p class="footer-version">Magic Shell · v1.0 · MIT License</p>
+          <p class="footer-version">Magic Shell · v{currentVersion} · MIT License</p>
         </div>
 
         <div class="footer-columns">
@@ -273,6 +283,51 @@ import SectionHeader from "../components/SectionHeader.astro";
 </Landing>
 
 <style>
+  .release-preview {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    background: var(--bg-elevated);
+  }
+
+  .release-label {
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .release-preview h2 {
+    font-size: var(--text-xl);
+    margin-bottom: 0.75rem;
+  }
+
+  .release-summary {
+    color: var(--text-secondary);
+    max-width: 70ch;
+    line-height: 1.6;
+  }
+
+  .release-link {
+    flex-shrink: 0;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  @media (max-width: 640px) {
+    .release-preview {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+  }
+
   /* Section styling */
   .section {
     padding: var(--space-24) 0;

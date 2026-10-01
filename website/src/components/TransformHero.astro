@@ -1,6 +1,7 @@
 ---
 // Hero component with animated typing transformation - CLI and TUI modes
 import InstallBlock from "./InstallBlock.astro";
+import { currentVersion } from "../lib/release";
 ---
 
 <section class="hero">
@@ -13,10 +14,10 @@ import InstallBlock from "./InstallBlock.astro";
   <div class="hero-content container">
     <!-- Centered header content -->
     <div class="hero-header">
-      <div class="hero-badge">
+      <a class="hero-badge" href="/reference/changelog/">
         <span class="badge-dot"></span>
-        <span>Open Source CLI Tool</span>
-      </div>
+        <span>Open Source · v{currentVersion} · What’s new →</span>
+      </a>
 
       <h1 class="hero-title">
         <span class="title-line">Talk to your terminal.</span>

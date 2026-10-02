@@ -1,8 +1,35 @@
 import type { Config, CostTier, Model, Provider } from "./types"
 
-// Curated September 2026. Keep this list compact: current free/open-weight options,
+// Curated October 2026. Keep this list compact: current free/open-weight options,
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
+  {
+    id: "openai/gpt-6.1-sol",
+    name: "GPT 6.1 Sol",
+    description: "Updated Sol model for coding, agents, and professional work.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "premium",
+  },
+  {
+    id: "anthropic/claude-sonnet-5.5",
+    name: "Claude Sonnet 5.5",
+    description: "Balanced Claude model for fast coding and agentic tasks.",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
+    id: "qwen/qwen3.8-flash",
+    name: "Qwen 3.8 Flash",
+    description: "Open-weight multimodal model for coding and agentic workflows.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "lower-cost",
+  },
   {
     id: "xiaomi/mimo-v2.6-flash",
     name: "MiMo V2.6 Flash",
@@ -263,6 +290,8 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
       "openai/gpt-5.6-luna",
       "openai/gpt-6-astra",
       "openai/gpt-6-luna",
+      "openai/gpt-6.1-sol",
+      "anthropic/claude-sonnet-5.5",
       "xiaomi/mimo-v2.6-flash",
       "openai/gpt-6-sol",
       "anthropic/claude-opus-5.5",
@@ -275,6 +304,15 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
       "anthropic/claude-fable-5",
     ].includes(model.id),
   ).map((model) => ({ ...model, provider: "vercel-ai-gateway" as const })),
+  {
+    id: "alibaba/qwen3.8-flash",
+    name: "Qwen 3.8 Flash",
+    description: "Open-weight multimodal model for coding and agentic workflows.",
+    category: "fast",
+    provider: "vercel-ai-gateway",
+    contextLength: 991000,
+    cost: "lower-cost",
+  },
   {
     id: "deepseek/deepseek-v4-pro-0813",
     name: "DeepSeek V4 Pro 0813",
@@ -334,7 +372,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    !["deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash"].includes(model.id),
+    !["deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash"].includes(model.id),
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,
@@ -456,6 +494,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     cost: "free",
   },
   {
+    id: "qwen3.8-flash",
+    name: "Qwen 3.8 Flash",
+    description: "Open-weight Qwen model for fast coding and agentic work.",
+    category: "fast",
+    provider: "opencode-zen",
+    zenApiType: "openai-compatible",
+    contextLength: 1000000,
+    cost: "lower-cost",
+  },
+  {
     id: "nemotron-3.5-lightning-free",
     name: "Nemotron 3.5 Lightning (Free)",
     description: "Current free high-throughput reasoning model on OpenCode Zen.",
@@ -520,6 +568,7 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     ["gpt-6-astra", "GPT 6 Astra", "reasoning", "premium"],
     ["gpt-6-luna", "GPT 6 Luna", "fast", "lower-cost"],
     ["gpt-6-sol", "GPT 6 Sol", "reasoning", "premium"],
+    ["gpt-6.1-sol", "GPT 6.1 Sol", "reasoning", "premium"],
     ["gpt-5.6-terra", "GPT 5.6 Terra", "smart", "premium"],
     ["gpt-5.6-sol", "GPT 5.6 Sol", "reasoning", "premium"],
   ].map(([id, name, category, cost]) => ({
@@ -532,6 +581,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     contextLength: 1050000,
     cost: cost as CostTier,
   })),
+  {
+    id: "claude-sonnet-5-5",
+    name: "Claude Sonnet 5.5",
+    description: "Balanced Claude model for fast coding and agentic tasks.",
+    category: "smart",
+    provider: "opencode-zen",
+    zenApiType: "anthropic",
+    contextLength: 1000000,
+    cost: "premium",
+  },
   {
     id: "claude-opus-5-5",
     name: "Claude Opus 5.5",

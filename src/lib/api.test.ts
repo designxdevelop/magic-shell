@@ -1,13 +1,15 @@
 import { expect, test } from "bun:test";
 import { buildAiSdkProviderOptions, shouldOmitTemperature } from "./api";
 
-test("Opus 5.5 uses effort without manual thinking budgets", () => {
+test("Claude 5.5 models use effort without manual thinking budgets", () => {
   for (const level of ["off", "low", "medium", "high"] as const) {
-    expect(buildAiSdkProviderOptions("claude-opus-5-5", level)).toEqual({
-      anthropic: { effort: level === "off" ? "low" : level },
-    });
-    for (const id of ["claude-opus-5-5", "anthropic/claude-opus-5.5", "anthropic/claude-opus-5-5"]) {
-      expect(shouldOmitTemperature(id, level)).toBe(true);
+    for (const family of ["opus", "sonnet"]) {
+      expect(buildAiSdkProviderOptions(`claude-${family}-5-5`, level)).toEqual({
+        anthropic: { effort: level === "off" ? "low" : level },
+      });
+      for (const id of [`claude-${family}-5-5`, `anthropic/claude-${family}-5.5`, `anthropic/claude-${family}-5-5`]) {
+        expect(shouldOmitTemperature(id, level)).toBe(true);
+      }
     }
   }
 });

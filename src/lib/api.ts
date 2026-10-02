@@ -161,8 +161,8 @@ function buildOpenAICompatibleThinkingOptions(modelId: string, thinkingLevel: Th
 }
 
 export function buildAiSdkProviderOptions(modelId: string, thinkingLevel: ThinkingLevel, providerOptionsName?: string): ProviderOptions | undefined {
-  // Opus 5.5 rejects manual thinking budgets and cannot disable thinking.
-  if (modelId === "claude-opus-5-5") {
+  // Claude 5.5 models reject manual thinking budgets; use effort instead.
+  if (modelId === "claude-opus-5-5" || modelId === "claude-sonnet-5-5") {
     return { anthropic: { effort: thinkingLevel === "off" ? "low" : thinkingLevel } };
   }
   if (thinkingLevel === "off" || !supportsThinkingControl(modelId)) {
@@ -235,7 +235,7 @@ export function buildAiSdkProviderOptions(modelId: string, thinkingLevel: Thinki
 }
 
 export function shouldOmitTemperature(modelId: string, thinkingLevel: ThinkingLevel): boolean {
-  if (/claude-opus-5[.-]5/.test(modelId)) return true;
+  if (/claude-(?:opus|sonnet)-5[.-]5/.test(modelId)) return true;
   // "off" omits reasoning options; the provider may still default to reasoning.
   if (modelId.includes("gpt-5") || modelId.includes("gpt-6")) return true;
   return thinkingLevel !== "off" && modelId.startsWith("claude-");

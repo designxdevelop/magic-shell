@@ -3,7 +3,7 @@ import { buildAiSdkProviderOptions, shouldOmitTemperature } from "./api";
 
 test("Claude 5.5 models use effort without manual thinking budgets", () => {
   for (const level of ["off", "low", "medium", "high"] as const) {
-    for (const family of ["opus", "sonnet"]) {
+    for (const family of ["opus", "sonnet", "haiku"]) {
       expect(buildAiSdkProviderOptions(`claude-${family}-5-5`, level)).toEqual({
         anthropic: { effort: level === "off" ? "low" : level },
       });

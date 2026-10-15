@@ -21,7 +21,8 @@ concurrency:
 
 jobs:
   publish-npm:
-    runs-on: ubuntu-latest
+    # npm OIDC trusted publishing requires a GitHub-hosted runner.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       id-token: write

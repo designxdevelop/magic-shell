@@ -4,6 +4,33 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
+    id: "reflection/beam-1.0-501b-a23b",
+    name: "Beam 1.0",
+    description: "Open-weight reasoning model for coding and long-running agents.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "meta/muse-spark-open",
+    name: "Muse Spark Open",
+    description: "Meta's open-weight model trained for agentic coding.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "premium",
+  },
+  {
+    id: "nvidia/nemotron-3.5-super-vl:free",
+    name: "Nemotron 3.5 Super VL (Free)",
+    description: "Free open multimodal model with reasoning and tool use.",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "free",
+  },
+  {
     id: "anthropic/claude-haiku-5.5",
     name: "Claude Haiku 5.5",
     description: "Fast Claude model for coding and high-volume tasks.",
@@ -333,6 +360,24 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
     ].includes(model.id),
   ).map((model) => ({ ...model, provider: "vercel-ai-gateway" as const })),
   {
+    id: "meta/muse-spark-open",
+    name: "Muse Spark Open",
+    description: "Meta's open-weight model trained for agentic coding.",
+    category: "reasoning",
+    provider: "vercel-ai-gateway",
+    contextLength: 1048576,
+    cost: "premium",
+  },
+  {
+    id: "nvidia/nemotron-3.5-super-vl",
+    name: "Nemotron 3.5 Super VL",
+    description: "Open multimodal model with reasoning and tool use.",
+    category: "smart",
+    provider: "vercel-ai-gateway",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
     id: "mistral/mistral-large-4",
     name: "Mistral Large 4",
     description: "Open-weight multimodal model for coding and agentic work.",
@@ -407,6 +452,15 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
 ]
 
 export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
+  {
+    id: "reflection-ai/beam-1.0-501b-a23b",
+    name: "Beam 1.0",
+    description: "Open-weight reasoning model for coding and long-running agents.",
+    category: "reasoning",
+    provider: "cloudflare-ai-gateway",
+    contextLength: 262144,
+    cost: "free",
+  },
   {
     id: "workers-ai/@cf/openai/gpt-oss-120b",
     name: "Workers AI GPT OSS 120B",
@@ -548,6 +602,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     zenApiType: "openai-compatible",
     contextLength: 1000000,
     cost: "lower-cost",
+  },
+  {
+    id: "nemotron-3.5-super-vl-free",
+    name: "Nemotron 3.5 Super VL (Free)",
+    description: "Free open multimodal model with reasoning and tool use.",
+    category: "smart",
+    provider: "opencode-zen",
+    zenApiType: "openai-compatible",
+    contextLength: 1000000,
+    cost: "free",
   },
   {
     id: "ling-3.1-flash-free",

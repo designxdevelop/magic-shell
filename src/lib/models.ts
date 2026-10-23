@@ -4,6 +4,42 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
+    id: "moonshotai/kimi-k3.1-pro",
+    name: "Kimi K3.1 Pro",
+    description: "Open-weight multimodal reasoning model for long-horizon coding.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "premium",
+  },
+  {
+    id: "minimax/minimax-m3.1-flash",
+    name: "MiniMax M3.1 Flash",
+    description: "Open-weight multimodal model for fast coding and agentic tasks.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "deepseek/deepseek-v4.1-flash-1017",
+    name: "DeepSeek V4.1 Flash 1017",
+    description: "October checkpoint of the open-weight DeepSeek V4.1 Flash model.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "recursive/flint-v1.0:free",
+    name: "Flint (Free)",
+    description: "Free open-weight coding-agent model with a 262K context window.",
+    category: "fast",
+    provider: "openrouter",
+    contextLength: 262144,
+    cost: "free",
+  },
+  {
     id: "reflection/beam-1.0-501b-a23b",
     name: "Beam 1.0",
     description: "Open-weight reasoning model for coding and long-running agents.",
@@ -341,6 +377,9 @@ export const OPENROUTER_MODELS: Model[] = [
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   ...OPENROUTER_MODELS.filter((model) =>
     [
+      "moonshotai/kimi-k3.1-pro",
+      "minimax/minimax-m3.1-flash",
+      "deepseek/deepseek-v4.1-flash-1017",
       "openai/gpt-5.6-luna",
       "openai/gpt-6-astra",
       "openai/gpt-6-luna",
@@ -472,7 +511,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    !["deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
+    !["moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,
@@ -587,6 +626,26 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     id: "deepseek-v4-flash-free",
     name: "DeepSeek V4 Flash (Free)",
     description: "Free DeepSeek coding model with a one-million-token context window.",
+    category: "fast",
+    provider: "opencode-zen",
+    zenApiType: "openai-compatible",
+    contextLength: 1048576,
+    cost: "free",
+  },
+  {
+    id: "flint-40b-free",
+    name: "Flint 40B (Free)",
+    description: "Free open-weight model for coding-agent tasks.",
+    category: "fast",
+    provider: "opencode-zen",
+    zenApiType: "openai-compatible",
+    contextLength: 262144,
+    cost: "free",
+  },
+  {
+    id: "deepseek-v4.1-flash-free",
+    name: "DeepSeek V4.1 Flash (Free)",
+    description: "Free open-weight DeepSeek model for coding and reasoning.",
     category: "fast",
     provider: "opencode-zen",
     zenApiType: "openai-compatible",

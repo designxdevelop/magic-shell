@@ -14,8 +14,8 @@ test("Claude 5.5 models use effort without manual thinking budgets", () => {
   }
 });
 
-test("GPT 6 Luna and Sol retain reasoning and omit temperature", () => {
-  for (const id of ["gpt-6-luna", "gpt-6-sol"]) {
+test("GPT 6 Luna, Sol, and 6.1 Terra retain reasoning and omit temperature", () => {
+  for (const id of ["gpt-6-luna", "gpt-6-sol", "gpt-6.1-terra"]) {
     expect(buildAiSdkProviderOptions(id, "high")?.openai).toEqual({ reasoningEffort: "high" });
     expect(shouldOmitTemperature(id, "off")).toBe(true);
   }

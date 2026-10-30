@@ -4,6 +4,15 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
+    id: "openai/gpt-6.1-terra",
+    name: "GPT 6.1 Terra",
+    description: "Fast OpenAI model for visual reasoning, coding, and everyday agentic work.",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "premium",
+  },
+  {
     id: "moonshotai/kimi-k3.1-pro",
     name: "Kimi K3.1 Pro",
     description: "Open-weight multimodal reasoning model for long-horizon coding.",
@@ -377,6 +386,7 @@ export const OPENROUTER_MODELS: Model[] = [
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   ...OPENROUTER_MODELS.filter((model) =>
     [
+      "openai/gpt-6.1-terra",
       "moonshotai/kimi-k3.1-pro",
       "minimax/minimax-m3.1-flash",
       "deepseek/deepseek-v4.1-flash-1017",
@@ -511,7 +521,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    !["moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
+    !["openai/gpt-6.1-terra", "moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,

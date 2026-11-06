@@ -1,8 +1,26 @@
 import type { Config, CostTier, Model, Provider } from "./types"
 
-// Curated October 2026. Keep this list compact: current free/open-weight options,
+// Curated November 2026. Keep this list compact: current free/open-weight options,
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
+  {
+    id: "ricursiveai/ripple-65b-preview",
+    name: "Ripple 65B Preview",
+    description: "Open-weight coding model with native tool calling and long context.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "tencent/hy4",
+    name: "Tencent Hy4",
+    description: "Open-weight model for coding agents and long-horizon tool use.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
   {
     id: "openai/gpt-6.1-terra",
     name: "GPT 6.1 Terra",
@@ -386,6 +404,7 @@ export const OPENROUTER_MODELS: Model[] = [
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   ...OPENROUTER_MODELS.filter((model) =>
     [
+      "tencent/hy4",
       "openai/gpt-6.1-terra",
       "moonshotai/kimi-k3.1-pro",
       "minimax/minimax-m3.1-flash",
@@ -521,7 +540,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    !["openai/gpt-6.1-terra", "moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
+    !["tencent/hy4", "openai/gpt-6.1-terra", "moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,

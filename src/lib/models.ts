@@ -4,6 +4,24 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
+    id: "anthropic/claude-fable-5.2",
+    name: "Claude Fable 5.2",
+    description: "Anthropic's newest model for demanding reasoning and long-horizon agents.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
+    id: "thinkingmachines/inkling-2-small:free",
+    name: "Inkling 2 Small (Free)",
+    description: "Free open-weight multimodal model for coding and tool use.",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "free",
+  },
+  {
     id: "ricursiveai/ripple-65b-preview",
     name: "Ripple 65B Preview",
     description: "Open-weight coding model with native tool calling and long context.",
@@ -404,6 +422,7 @@ export const OPENROUTER_MODELS: Model[] = [
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   ...OPENROUTER_MODELS.filter((model) =>
     [
+      "anthropic/claude-fable-5.2",
       "tencent/hy4",
       "openai/gpt-6.1-terra",
       "moonshotai/kimi-k3.1-pro",
@@ -427,6 +446,15 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
       "anthropic/claude-fable-5",
     ].includes(model.id),
   ).map((model) => ({ ...model, provider: "vercel-ai-gateway" as const })),
+  {
+    id: "thinkingmachines/inkling-2-small",
+    name: "Inkling 2 Small",
+    description: "Open-weight multimodal model for coding and tool use.",
+    category: "smart",
+    provider: "vercel-ai-gateway",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
   {
     id: "meta/muse-spark-open",
     name: "Muse Spark Open",
@@ -521,6 +549,15 @@ export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
 
 export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   {
+    id: "anthropic/claude-fable-5.2",
+    name: "Claude Fable 5.2",
+    description: "Anthropic's newest model for demanding reasoning and long-horizon agents.",
+    category: "reasoning",
+    provider: "cloudflare-ai-gateway",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
     id: "reflection-ai/beam-1.0-501b-a23b",
     name: "Beam 1.0",
     description: "Open-weight reasoning model for coding and long-running agents.",
@@ -540,7 +577,7 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
   },
   // Only propagate new releases after Cloudflare lists the corresponding route.
   ...VERCEL_AI_GATEWAY_MODELS.filter((model) =>
-    !["tencent/hy4", "openai/gpt-6.1-terra", "moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
+    !["anthropic/claude-fable-5.2", "thinkingmachines/inkling-2-small", "tencent/hy4", "openai/gpt-6.1-terra", "moonshotai/kimi-k3.1-pro", "minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash-1017", "deepseek/deepseek-v4.1-flash", "xiaomi/mimo-v2.6-flash", "openai/gpt-6.1-sol", "anthropic/claude-sonnet-5.5", "alibaba/qwen3.8-flash", "anthropic/claude-haiku-5.5", "mistral/mistral-large-4", "inclusionai/ling-3.1-flash-free"].includes(model.id),
   ).map((model) => ({
     ...model,
     id: model.id.startsWith("anthropic/") ? model.id.replaceAll(".", "-") : model.id,
@@ -549,6 +586,15 @@ export const CLOUDFLARE_AI_GATEWAY_MODELS: Model[] = [
 ]
 
 export const WORKERS_AI_MODELS: Model[] = [
+  {
+    id: "@cf/thinkingmachines/inkling-2-small",
+    name: "Inkling 2 Small",
+    description: "Open-weight multimodal model for coding and tool use on Workers AI.",
+    category: "smart",
+    provider: "workers-ai",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
   {
     id: "@cf/zai-org/glm-5.3",
     name: "GLM 5.3",
@@ -656,6 +702,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     name: "DeepSeek V4 Flash (Free)",
     description: "Free DeepSeek coding model with a one-million-token context window.",
     category: "fast",
+    provider: "opencode-zen",
+    zenApiType: "openai-compatible",
+    contextLength: 1048576,
+    cost: "free",
+  },
+  {
+    id: "inkling-2-small-free",
+    name: "Inkling 2 Small (Free)",
+    description: "Free open-weight multimodal model for coding and tool use.",
+    category: "smart",
     provider: "opencode-zen",
     zenApiType: "openai-compatible",
     contextLength: 1048576,
@@ -853,6 +909,16 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     id: "claude-fable-5-1",
     name: "Claude Fable 5.1",
     description: "Anthropic's latest model for demanding reasoning and long-running agents.",
+    category: "reasoning",
+    provider: "opencode-zen",
+    zenApiType: "anthropic",
+    contextLength: 1000000,
+    cost: "premium",
+  },
+  {
+    id: "claude-fable-5-2",
+    name: "Claude Fable 5.2",
+    description: "Anthropic's newest model for demanding reasoning and long-horizon agents.",
     category: "reasoning",
     provider: "opencode-zen",
     zenApiType: "anthropic",

@@ -14,6 +14,17 @@ test("Claude 5.5 models use effort without manual thinking budgets", () => {
   }
 });
 
+test("Claude Fable 5.2 uses effort and omits temperature", () => {
+  for (const level of ["off", "low", "medium", "high"] as const) {
+    expect(buildAiSdkProviderOptions("claude-fable-5-2", level)).toEqual({
+      anthropic: { effort: level === "off" ? "low" : level },
+    });
+    for (const id of ["claude-fable-5-2", "anthropic/claude-fable-5.2"]) {
+      expect(shouldOmitTemperature(id, level)).toBe(true);
+    }
+  }
+});
+
 test("GPT 6 Luna, Sol, and 6.1 Terra retain reasoning and omit temperature", () => {
   for (const id of ["gpt-6-luna", "gpt-6-sol", "gpt-6.1-terra"]) {
     expect(buildAiSdkProviderOptions(id, "high")?.openai).toEqual({ reasoningEffort: "high" });

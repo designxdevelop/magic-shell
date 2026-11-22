@@ -4,6 +4,42 @@ import type { Config, CostTier, Model, Provider } from "./types"
 // plus the newest OpenAI and Anthropic families suited to command generation.
 export const OPENROUTER_MODELS: Model[] = [
   {
+    id: "openai/gpt-6.2-astra",
+    name: "GPT 6.2 Astra",
+    description: "OpenAI flagship for complex engineering, reasoning, and agentic work.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "premium",
+  },
+  {
+    id: "openai/gpt-6.2-sol",
+    name: "GPT 6.2 Sol",
+    description: "Efficient OpenAI model for everyday coding and agentic workflows.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 1050000,
+    cost: "premium",
+  },
+  {
+    id: "thinkingmachines/inkling-2-mini",
+    name: "Inkling 2 Mini",
+    description: "Compact open-weight multimodal reasoning model with tool use.",
+    category: "smart",
+    provider: "openrouter",
+    contextLength: 1048576,
+    cost: "lower-cost",
+  },
+  {
+    id: "radixark/daisyrose-27b",
+    name: "DaisyRose 27B",
+    description: "Open-weight multimodal model trained for long-horizon coding agents.",
+    category: "reasoning",
+    provider: "openrouter",
+    contextLength: 262144,
+    cost: "lower-cost",
+  },
+  {
     id: "anthropic/claude-fable-5.2",
     name: "Claude Fable 5.2",
     description: "Anthropic's newest model for demanding reasoning and long-horizon agents.",
@@ -422,6 +458,8 @@ export const OPENROUTER_MODELS: Model[] = [
 export const VERCEL_AI_GATEWAY_MODELS: Model[] = [
   ...OPENROUTER_MODELS.filter((model) =>
     [
+      "openai/gpt-6.2-astra",
+      "openai/gpt-6.2-sol",
       "anthropic/claude-fable-5.2",
       "tencent/hy4",
       "openai/gpt-6.1-terra",
@@ -843,6 +881,8 @@ export const OPENCODE_ZEN_MODELS: Model[] = [
     ["gpt-6-luna", "GPT 6 Luna", "fast", "lower-cost"],
     ["gpt-6-sol", "GPT 6 Sol", "reasoning", "premium"],
     ["gpt-6.1-sol", "GPT 6.1 Sol", "reasoning", "premium"],
+    ["gpt-6.2-astra", "GPT 6.2 Astra", "reasoning", "premium"],
+    ["gpt-6.2-sol", "GPT 6.2 Sol", "reasoning", "premium"],
     ["gpt-5.6-terra", "GPT 5.6 Terra", "smart", "premium"],
     ["gpt-5.6-sol", "GPT 5.6 Sol", "reasoning", "premium"],
   ].map(([id, name, category, cost]) => ({
